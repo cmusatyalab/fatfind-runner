@@ -1,11 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src po
+SUBDIRS = src po data
 
-EXTRA_DIST = \
-	autogen.sh \
-	fatfind.glade \
-	fatfind.gladep
+EXTRA_DIST = AUTHORS NEWS README
 
 install-data-local:
 	@$(NORMAL_INSTALL)
