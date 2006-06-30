@@ -8,6 +8,7 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -596,31 +597,25 @@ int applyTransforms(int argc, char* argv[]){
 }
 
 
+GladeXML *g_xml;
+
 int
 main (int argc, char *argv[])
 {
   GtkWidget *fatfind;
 
-#ifdef ENABLE_NLS
-  bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
-  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-  textdomain (GETTEXT_PACKAGE);
-#endif
+  gtk_init(&argc,&argv);
+  g_xml = glade_xml_new("fatfind.glade",NULL,NULL);
+  g_assert(g_xml != NULL);
 
-  gtk_set_locale ();
-  gtk_init (&argc, &argv);
+  glade_xml_signal_autoconnect(g_xml);
+  fatfind = glade_xml_get_widget(g_xml,"fatfind");
 
-  add_pixmap_directory (PACKAGE_DATA_DIR "/" PACKAGE "/pixmaps");
+  g_signal_connect(G_OBJECT(fatfind),"destroy",G_CALLBACK(gtk_main_quit),NULL);
 
-  /*
-   * The following code was added by Glade to create one of each component
-   * (except popup menus), just so that you see something after building
-   * the project. Delete any components that you don't want shown initially.
-   */
-  fatfind = create_fatfind ();
-  gtk_widget_show (fatfind);
+  gtk_widget_show_all(fatfind);
 
-  gtk_main ();
+  gtk_main();
   return 0;
 }
 

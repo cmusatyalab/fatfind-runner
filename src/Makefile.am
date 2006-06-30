@@ -8,9 +8,7 @@ INCLUDES = \
 bin_PROGRAMS = fatfind
 
 fatfind_SOURCES = \
-	main.c \
-	support.c support.h \
-	interface.c interface.h \
+	main.c fatfind.h \
 	callbacks.c callbacks.h
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)

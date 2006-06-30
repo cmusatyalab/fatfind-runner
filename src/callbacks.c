@@ -3,10 +3,10 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 
+#include "fatfind.h"
 #include "callbacks.h"
-#include "interface.h"
-#include "support.h"
 
 
 void
@@ -53,8 +53,8 @@ on_startButton_clicked                 (GtkButton       *button,
                                         gpointer         user_data)
 {
 
-  GtkWidget * progress = lookup_widget(GTK_WIDGET(button), "progressBar");
-  GtkWidget * thumb = lookup_widget(GTK_WIDGET(button), "thumb1");
+  GtkWidget * progress = glade_xml_get_widget(g_xml, "progressBar");
+  GtkWidget * thumb = glade_xml_get_widget(g_xml, "thumb1");
 
   gdouble fraction = gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(progress));
   gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), fraction+0.1);
@@ -77,7 +77,7 @@ on_radiotoolbutton1_toggled            (GtkToggleToolButton *toggletoolbutton,
                                         gpointer         user_data)
 {
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(toggletoolbutton), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/original.bmp");
 
 }
@@ -88,7 +88,7 @@ on_radiotoolbutton2_toggled            (GtkToggleToolButton *toggletoolbutton,
                                         gpointer         user_data)
 {
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(toggletoolbutton), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/edges.bmp");
 
 }
@@ -99,7 +99,7 @@ on_radiotoolbutton3_toggled            (GtkToggleToolButton *toggletoolbutton,
                                         gpointer         user_data)
 {
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(toggletoolbutton), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/hough.bmp");
 
 }
@@ -110,7 +110,7 @@ on_radiotoolbutton4_toggled            (GtkToggleToolButton *toggletoolbutton,
                                         gpointer         user_data)
 {
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(toggletoolbutton), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/gaussian.bmp");
 
 }
@@ -121,7 +121,7 @@ on_radiotoolbutton5_toggled            (GtkToggleToolButton *toggletoolbutton,
                                         gpointer         user_data)
 {
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(toggletoolbutton), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/circles.bmp");
 
 }
@@ -133,11 +133,11 @@ on_thumbButton1_clicked                (GtkButton       *button,
 {
 
   // Display large version of image
-  GtkWidget * image = lookup_widget(GTK_WIDGET(button), "largeImage");
+  GtkWidget * image = glade_xml_get_widget(g_xml, "largeImage");
   gtk_image_set_from_file(GTK_IMAGE(image), "/diamonddata/original.bmp");
 
   // Update the Image Info fields
-  GtkWidget * info = lookup_widget(GTK_WIDGET(button), "imageInfo");
+  GtkWidget * info = glade_xml_get_widget(g_xml, "imageInfo");
   gtk_label_set_text(GTK_LABEL(info), "/diamonddata/frame0001.png");
 
 }
