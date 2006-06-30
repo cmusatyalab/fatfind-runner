@@ -14,8 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "interface.h"
-#include "support.h"
+#include "fatfind.h"
 
 double MPI = 3.1415926535897;
 
