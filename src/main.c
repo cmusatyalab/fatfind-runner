@@ -604,7 +604,7 @@ main (int argc, char *argv[])
   GtkWidget *fatfind;
 
   gtk_init(&argc,&argv);
-  g_xml = glade_xml_new("fatfind.glade",NULL,NULL);
+  g_xml = glade_xml_new(FATFIND_GLADEDIR "/fatfind.glade",NULL,NULL);
   g_assert(g_xml != NULL);
 
   glade_xml_signal_autoconnect(g_xml);
