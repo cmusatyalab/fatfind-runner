@@ -1,0 +1,5 @@
+# list of files containing translatable strings
+
+src/main.c
+src/callbacks.c
+src/image.c
