@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-double MPI = 3.1415926535897;
-
 typedef struct{
 	int rows;
 	int cols;
@@ -260,16 +258,16 @@ void CalculateCannyEdgeImage(char* fName){
 				//...Can't take invtan of angle in 2nd Quad...
 				else if(sumX < 0 && sumY > 0){
 					sumX = -sumX;
-					ORIENT = 180 - ((atan((float)(sumY) / (float)(sumX))) * (180 / MPI));
+					ORIENT = 180 - ((atan((float)(sumY) / (float)(sumX))) * (180 / M_PI));
 				}
 				//...Can't take invtan of angle in 4th Quad...
 				else if(sumX > 0 && sumY < 0){
 					sumY = -sumY;
-					ORIENT = 180 - ((atan((float)(sumY) / (float)(sumX))) * (180 / MPI));
+					ORIENT = 180 - ((atan((float)(sumY) / (float)(sumX))) * (180 / M_PI));
 				}
 				//..Else angle is in 1st or 3rd Quad...
 				else{
-					ORIENT = (atan((float)(sumY) / (float)(sumX))) * (180 / MPI);
+					ORIENT = (atan((float)(sumY) / (float)(sumX))) * (180 / M_PI);
 				}
 								
 				/***************************************************
@@ -380,6 +378,7 @@ void CalculateHoughTransform(char* fName){
 	FILE *edgeInput, *lineOutput, *houghOutput;
 	sImage edgeImage, lineImage, houghImage;
 	int nColors;
+	int t, r;
 	unsigned long vectorSize;
 	unsigned long fileSize;
 	unsigned char *pChar, someChar;
@@ -452,8 +451,8 @@ void CalculateHoughTransform(char* fName){
 	for(row = 0; row <= edgeImage.rows - 1; row++){
 		for(col = 0; col <= edgeImage.cols - 1; col++){			
 			if(*(edgeImage.data + row * edgeImage.cols + col) > 0){
-				for(int t = 0; t < 360; t++){
-					int r = (int)((row - edgeImage.rows / 2) * cos(MPI / 180.0 * t) + (col - edgeImage.cols / 2) * sin(MPI / 180.0 * t));
+				for(t = 0; t < 360; t++){
+					r = (int)((row - edgeImage.rows / 2) * cos(M_PI / 180.0 * t) + (col - edgeImage.cols / 2) * sin(M_PI / 180.0 * t));
 					if((r > -max_radius / 2) && (r < max_radius / 2) && (r != 0)){
 						*(houghImage.data + t + (r + max_radius / 2) * houghImage.cols) += 1;
 					}
@@ -496,12 +495,12 @@ void CalculateHoughTransform(char* fName){
 				if(maxima == 1){
 					//...Draw the line...
 					float radius = (float)(row - h_height / 2);
-					float theta = (float)((col-180)*MPI/180.0);
+					float theta = (float)((col-180)*M_PI/180.0);
 					float M, B;
 					int x, y;
 					int start, end;
 
-					if(((theta >= MPI/4) && (theta <= 3*MPI/4)) || ((-theta >= MPI/4) && (-theta <= 3*MPI/4))){
+					if(((theta >= M_PI/4) && (theta <= 3*M_PI/4)) || ((-theta >= M_PI/4) && (-theta <= 3*M_PI/4))){
 						M = (float)cos(theta) / (float)sin(theta);
 						B = radius / (float)sin(theta) + (houghImage.cols/2) * M + houghImage.rows / 2;
 						start = end = -1;

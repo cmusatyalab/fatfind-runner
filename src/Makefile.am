@@ -12,7 +12,8 @@ bin_PROGRAMS = fatfind
 
 fatfind_SOURCES = \
 	main.c fatfind.h \
-	callbacks.c callbacks.h
+	callbacks.c callbacks.h \
+	image.c
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
 
