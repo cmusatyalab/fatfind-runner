@@ -207,6 +207,7 @@
 				  <property name="visible">True</property>
 				  <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
 				  <signal name="expose_event" handler="on_selectedImage_expose_event" last_modification_time="Sun, 09 Jul 2006 01:28:04 GMT"/>
+				  <signal name="button_press_event" handler="on_selectedImage_button_press_event" last_modification_time="Sun, 09 Jul 2006 03:48:23 GMT"/>
 				</widget>
 			      </child>
 			    </widget>
@@ -262,8 +263,51 @@
 			      <property name="right_padding">0</property>
 
 			      <child>
-				<widget class="GtkDrawingArea" id="chosenReferenceCalibrate">
+				<widget class="GtkVBox" id="vbox14">
 				  <property name="visible">True</property>
+				  <property name="homogeneous">False</property>
+				  <property name="spacing">0</property>
+
+				  <child>
+				    <widget class="GtkImage" id="calibrateRefImage">
+				      <property name="visible">True</property>
+				      <property name="xalign">0</property>
+				      <property name="yalign">0</property>
+				      <property name="xpad">0</property>
+				      <property name="ypad">0</property>
+				    </widget>
+				    <packing>
+				      <property name="padding">0</property>
+				      <property name="expand">False</property>
+				      <property name="fill">True</property>
+				    </packing>
+				  </child>
+
+				  <child>
+				    <widget class="GtkLabel" id="calibrateRefInfo">
+				      <property name="visible">True</property>
+				      <property name="can_focus">True</property>
+				      <property name="label" translatable="yes"></property>
+				      <property name="use_underline">False</property>
+				      <property name="use_markup">False</property>
+				      <property name="justify">GTK_JUSTIFY_LEFT</property>
+				      <property name="wrap">True</property>
+				      <property name="selectable">True</property>
+				      <property name="xalign">0</property>
+				      <property name="yalign">0</property>
+				      <property name="xpad">0</property>
+				      <property name="ypad">0</property>
+				      <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+				      <property name="width_chars">-1</property>
+				      <property name="single_line_mode">False</property>
+				      <property name="angle">0</property>
+				    </widget>
+				    <packing>
+				      <property name="padding">0</property>
+				      <property name="expand">True</property>
+				      <property name="fill">True</property>
+				    </packing>
+				  </child>
 				</widget>
 			      </child>
 			    </widget>
