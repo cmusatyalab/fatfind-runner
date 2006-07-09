@@ -9,6 +9,7 @@
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -16,6 +17,75 @@
 
 #include "fatfind.h"
 
+
+static void setup_thumbnails(GtkIconView *g, gchar *file) {
+  GtkListStore *s;
+  GtkTreeIter iter;
+  gchar buf[BUFSIZ];
+  const gchar *dirname = g_path_get_dirname(file);
+
+  // get index
+  FILE *f = fopen(file, "r");
+  if (f == NULL) {
+    perror("Error getting index");
+    exit(1);
+  }
+
+  // create the model
+  s = gtk_list_store_new(2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
+
+
+  // get all the thumbnails
+  while (1) {
+    GError *err = NULL;
+    gchar *tmp;
+    gchar *filename;
+    GdkPixbuf *pix;
+
+    int result;
+
+    result = fscanf(f, "%2s", buf);
+    printf("fscanf result: %d\n", result);
+    if (result == EOF) {
+      break;
+    } else if (result != 1) {
+      perror("bad result");
+    }
+
+    tmp = g_strdup_printf("%s.JPG", buf);
+
+    filename = g_build_filename(dirname, tmp, NULL);
+
+    printf("filename: %s\n", filename);
+
+    pix = gdk_pixbuf_new_from_file_at_size(filename,
+					   150,
+					   -1,
+					   &err);
+    if (err != NULL) {
+      printf("error: %s\n", err->message);
+      g_error_free(err);
+    }
+
+    g_free(tmp);
+
+    gtk_list_store_append(s, &iter);
+    gtk_list_store_set(s, &iter,
+		       0, pix,
+		       1, filename,
+		       -1);
+    g_object_unref(pix);
+    g_free(filename);
+  }
+
+  // set it up
+  gtk_icon_view_set_model(g, GTK_TREE_MODEL(s));
+  gtk_icon_view_set_pixbuf_column(g, 0);
+  //gtk_icon_view_set_text_column(g, 1);
+
+  fclose(f);
+  g_free(dirname);
+}
 
 
 GladeXML *g_xml;
@@ -29,10 +99,19 @@ main (int argc, char *argv[])
   g_xml = glade_xml_new(FATFIND_GLADEDIR "/fatfind.glade",NULL,NULL);
   g_assert(g_xml != NULL);
 
+  if (argc != 2) {
+    printf("No image directory given on command line\n");
+    return;
+  }
+
   glade_xml_signal_autoconnect(g_xml);
   fatfind = glade_xml_get_widget(g_xml,"fatfind");
 
-  g_signal_connect(G_OBJECT(fatfind),"destroy",G_CALLBACK(gtk_main_quit),NULL);
+
+  // setup the thumbnails
+  setup_thumbnails(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
+						      "calibrationImages")),
+		   argv[1]);
 
   gtk_widget_show_all(fatfind);
 

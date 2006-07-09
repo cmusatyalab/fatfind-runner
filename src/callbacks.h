@@ -1,3 +1,6 @@
+#ifndef CALLBACKS_H
+#define CALLBACKS_H
+
 #include <gtk/gtk.h>
 
 void
@@ -104,3 +107,5 @@ on_thumbButton2_clicked                (GtkButton       *button,
 void
 on_thumbButton3_clicked                (GtkButton       *button,
                                         gpointer         user_data);
+
+#endif

@@ -13,7 +13,9 @@ bin_PROGRAMS = fatfind
 fatfind_SOURCES = \
 	main.c fatfind.h \
 	callbacks.c callbacks.h \
+	calibrate.c calibrate.h \
 	image.c
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
 
+fatfind_LDFLAGS = -export-dynamic
