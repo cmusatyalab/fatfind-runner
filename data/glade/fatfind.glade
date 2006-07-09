@@ -206,6 +206,7 @@
 				<widget class="GtkDrawingArea" id="selectedImage">
 				  <property name="visible">True</property>
 				  <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+				  <signal name="expose_event" handler="on_selectedImage_expose_event" last_modification_time="Sun, 09 Jul 2006 01:28:04 GMT"/>
 				</widget>
 			      </child>
 			    </widget>
