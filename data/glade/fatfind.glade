@@ -205,9 +205,13 @@
 			      <child>
 				<widget class="GtkDrawingArea" id="selectedImage">
 				  <property name="visible">True</property>
-				  <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+				  <property name="events">GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK</property>
 				  <signal name="expose_event" handler="on_selectedImage_expose_event" last_modification_time="Sun, 09 Jul 2006 01:28:04 GMT"/>
 				  <signal name="button_press_event" handler="on_selectedImage_button_press_event" last_modification_time="Sun, 09 Jul 2006 03:48:23 GMT"/>
+				  <signal name="motion_notify_event" handler="on_selectedImage_motion_notify_event" last_modification_time="Sun, 09 Jul 2006 14:37:31 GMT"/>
+				  <signal name="configure_event" handler="on_selectedImage_configure_event" last_modification_time="Sun, 09 Jul 2006 14:44:36 GMT"/>
+				  <signal name="enter_notify_event" handler="on_selectedImage_enter_notify_event" last_modification_time="Mon, 10 Jul 2006 01:15:57 GMT"/>
+				  <signal name="leave_notify_event" handler="on_selectedImage_leave_notify_event" last_modification_time="Mon, 10 Jul 2006 01:16:06 GMT"/>
 				</widget>
 			      </child>
 			    </widget>
