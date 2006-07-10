@@ -49,6 +49,9 @@ static void draw_hitmap(void) {
     gdk_draw_arc(hitmap, gc, TRUE,
 		 x - r, y - r, 2 * r, 2 * r,
 		 0, 360*64);
+    gdk_draw_arc(hitmap, gc, FALSE,
+		 x - r, y - r, 2 * r, 2 * r,
+		 0, 360*64);
 
     l = l->next;
     col.pixel++;
@@ -138,15 +141,24 @@ static void set_reference_circle(guint32 c) {
     gtk_image_clear(im);
     gtk_label_set_label(text, "");
   } else {
+    // set image
     circle_type *circ = (circle_type *)
       (g_list_nth(circles, reference_circle))->data;
 
-    float x = circ->x - 1.2 * r;
-    float y = circ->y - 1.2 * r;
+    float extra = 1.2;
     float r = circ->r;
+    float x = circ->x - extra * r;
+    float y = circ->y - extra * r;
+    int width = gdk_pixbuf_get_width(c_pix);
+    int height = gdk_pixbuf_get_height(c_pix);
 
     GdkPixbuf *sub;
     GdkPixbuf *sub_scaled;
+
+    gchar *new_text;
+
+    int xsize = 2 * extra * r;
+    int ysize = 2 * extra * r;
 
     if (x < 0) {
       x = 0;
@@ -154,12 +166,18 @@ static void set_reference_circle(guint32 c) {
     if (y < 0) {
       y = 0;
     }
+    if (x + xsize > width) {
+      xsize = width - x;
+    }
+    if (y + ysize > height) {
+      ysize = height - y;
+    }
 
     sub = gdk_pixbuf_new_subpixbuf(c_pix,
-				   x - 1.2 * r,
-				   y - 1.2 * r,
-				   2.4 * r,
-				   2.4 * r);
+				   x,
+				   y,
+				   xsize,
+				   ysize);
     sub_scaled = gdk_pixbuf_scale_simple(sub,
 					 150,
 					 150,
@@ -167,6 +185,13 @@ static void set_reference_circle(guint32 c) {
     gtk_image_set_from_pixbuf(im, sub_scaled);
     g_object_unref(sub);
     g_object_unref(sub_scaled);
+
+
+    // set text
+    new_text = g_strdup_printf("Radius: %g\nFuzziness: %g",
+			       r, circ->fuzz);
+    gtk_label_set_text(text, new_text);
+    g_free(new_text);
   }
 }
 
@@ -306,6 +331,7 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
       draw_circles(d);
     }
   }
+  return TRUE;
 }
 
 void on_calibrationImages_selection_changed (GtkIconView *view,
@@ -325,9 +351,9 @@ void on_calibrationImages_selection_changed (GtkIconView *view,
 }
 
 
-void on_selectedImage_button_press_event (GtkWidget      *widget,
-					  GdkEventButton *event,
-					  gpointer        user_data) {
+gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
+					      GdkEventButton *event,
+					      gpointer        user_data) {
   gint x, y;
   gint w, h;
   GdkImage *hit_data;
@@ -335,15 +361,15 @@ void on_selectedImage_button_press_event (GtkWidget      *widget,
 
   // if not selected, do nothing
   if (c_pix == NULL) {
-    return;
+    return FALSE;
   }
-
-  gdk_drawable_get_size(hitmap, &w, &h);
-  hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
 
   if (event->type == GDK_BUTTON_PRESS && event->button == 1) {
     g_debug("x: %g, y: %g", event->x, event->y);
     set_show_circles(TRUE);
+
+    gdk_drawable_get_size(hitmap, &w, &h);
+    hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
 
     //for (y = 0; y < h; y++) {
     //  for (x = 0; x < w; x++) {
@@ -362,36 +388,48 @@ void on_selectedImage_button_press_event (GtkWidget      *widget,
       set_reference_circle(hit);
       gtk_widget_queue_draw(widget);
     }
+    return TRUE;
   }
+  return FALSE;
 }
 
 
-void on_selectedImage_motion_notify_event (GtkWidget      *widget,
-					   GdkEventMotion *event,
-					   gpointer        user_data) {
+gboolean on_selectedImage_motion_notify_event (GtkWidget      *widget,
+					       GdkEventMotion *event,
+					       gpointer        user_data) {
   //g_message("x: %g, y: %g", event->x, event->y);
   set_show_circles(TRUE);
+  return TRUE;
 }
 
-void on_selectedImage_configure_event (GtkWidget         *widget,
-				       GdkEventConfigure *event,
-				       gpointer          user_data) {
+gboolean on_selectedImage_configure_event (GtkWidget         *widget,
+					   GdkEventConfigure *event,
+					   gpointer          user_data) {
   draw_scaled_offscreen_items(event->width, event->height);
+  return TRUE;
 }
 
 
 gboolean on_selectedImage_enter_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  g_debug("enter selectedImage");
-  set_show_circles(TRUE);
-  return TRUE;
+  if (event->mode == GDK_CROSSING_NORMAL) {
+    g_debug("enter selectedImage");
+    set_show_circles(TRUE);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 gboolean on_selectedImage_leave_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  g_debug("leave selectedImage");
-  set_show_circles(FALSE);
-  return TRUE;
+  if (event->mode == GDK_CROSSING_NORMAL) {
+    g_debug("leave selectedImage");
+    set_show_circles(FALSE);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }

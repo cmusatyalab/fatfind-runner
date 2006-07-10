@@ -10,17 +10,17 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
 					GdkEventExpose *event,
 					gpointer user_data);
 
-void on_selectedImage_button_press_event (GtkWidget      *widget,
-					  GdkEventButton *event,
-					  gpointer        user_data);
+gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
+					      GdkEventButton *event,
+					      gpointer        user_data);
 
-void on_selectedImage_motion_notify_event (GtkWidget      *widget,
-					   GdkEventMotion *event,
-					   gpointer        user_data);
+gboolean on_selectedImage_motion_notify_event (GtkWidget      *widget,
+					       GdkEventMotion *event,
+					       gpointer        user_data);
 
-void on_selectedImage_configure_event (GtkWidget         *widget,
-				       GdkEventConfigure *event,
-				       gpointer          user_data);
+gboolean on_selectedImage_configure_event (GtkWidget         *widget,
+					   GdkEventConfigure *event,
+					   gpointer          user_data);
 
 gboolean on_selectedImage_enter_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
