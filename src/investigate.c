@@ -44,6 +44,7 @@ void on_startSearch_clicked (GtkButton *button,
     g_debug("searching from %g to %g", r_min, r_max);
 
     // build model
+    
   }
 }
 
