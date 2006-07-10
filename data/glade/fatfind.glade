@@ -454,6 +454,7 @@
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <signal name="toggled" handler="on_define_search_value_changed" last_modification_time="Mon, 10 Jul 2006 17:30:54 GMT"/>
 					</widget>
 					<packing>
 					  <property name="left_attach">0</property>
@@ -481,6 +482,7 @@
 					      <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
 					      <property name="inverted">False</property>
 					      <property name="adjustment">-100 -100 0 1 10 0</property>
+					      <signal name="value_changed" handler="on_define_search_value_changed" last_modification_time="Mon, 10 Jul 2006 17:29:34 GMT"/>
 					    </widget>
 					    <packing>
 					      <property name="padding">0</property>
@@ -499,6 +501,7 @@
 					      <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
 					      <property name="inverted">False</property>
 					      <property name="adjustment">100 0 100 1 10 0</property>
+					      <signal name="value_changed" handler="on_define_search_value_changed" last_modification_time="Mon, 10 Jul 2006 17:29:53 GMT"/>
 					    </widget>
 					    <packing>
 					      <property name="padding">0</property>
@@ -526,6 +529,7 @@
 					  <property name="update_policy">GTK_UPDATE_CONTINUOUS</property>
 					  <property name="inverted">False</property>
 					  <property name="adjustment">0 -100 100 1 10 0</property>
+					  <signal name="value_changed" handler="on_define_search_value_changed" last_modification_time="Mon, 10 Jul 2006 17:30:23 GMT"/>
 					</widget>
 					<packing>
 					  <property name="left_attach">1</property>
@@ -547,6 +551,7 @@
 					  <property name="active">False</property>
 					  <property name="inconsistent">False</property>
 					  <property name="draw_indicator">True</property>
+					  <signal name="toggled" handler="on_define_search_value_changed" last_modification_time="Mon, 10 Jul 2006 17:31:02 GMT"/>
 					</widget>
 					<packing>
 					  <property name="left_attach">0</property>
