@@ -3,6 +3,8 @@
 
 #include <gtk/gtk.h>
 
+void draw_calibrate_offscreen_items (gint width, gint height);
+
 void on_calibrationImages_selection_changed (GtkIconView *view,
 					     gpointer user_data);
 
@@ -30,12 +32,5 @@ gboolean on_selectedImage_leave_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data);
 
-
-typedef struct {
-  float x;
-  float y;
-  float r;
-  float fuzz;
-} circle_type;
 
 #endif

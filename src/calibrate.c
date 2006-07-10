@@ -7,18 +7,19 @@
 #include <stdlib.h>
 
 #include "fatfind.h"
+#include "define.h"
 #include "calibrate.h"
 
 
-static GdkPixbuf *c_pix;
+GdkPixbuf *c_pix;
 static GdkPixbuf *c_pix_scaled;
 
 static GdkPixmap *hitmap;
-static GList *circles;
+GList *circles;
 static gboolean show_circles;
 static gfloat scale;
 
-static guint32 reference_circle = -1;
+guint32 reference_circle = -1;
 
 static void list_deleter(gpointer data, gpointer user_data) {
   g_free(data);
@@ -60,8 +61,8 @@ static void draw_hitmap(void) {
   g_object_unref(gc);
 }
 
-static void draw_scaled_offscreen_items(gint allocation_width,
-					gint allocation_height) {
+void draw_calibrate_offscreen_items(gint allocation_width,
+				    gint allocation_height) {
   // clear old scaled pix
   if (c_pix_scaled != NULL) {
     g_object_unref(c_pix_scaled);
@@ -134,12 +135,18 @@ static void set_reference_circle(guint32 c) {
   GtkImage *im = GTK_IMAGE(glade_xml_get_widget(g_xml, "calibrateRefImage"));
   GtkLabel *text = GTK_LABEL(glade_xml_get_widget(g_xml, "calibrateRefInfo"));
 
+  GtkImage *im2 = GTK_IMAGE(glade_xml_get_widget(g_xml, "defineRefImage"));
+  GtkLabel *text2 = GTK_LABEL(glade_xml_get_widget(g_xml, "defineRefInfo"));
+
   reference_circle = c;
 
   if (c == -1) {
     // clear the image and the text
     gtk_image_clear(im);
     gtk_label_set_label(text, "");
+
+    gtk_image_clear(im2);
+    gtk_label_set_label(text2, "");
   } else {
     // set image
     circle_type *circ = (circle_type *)
@@ -183,6 +190,7 @@ static void set_reference_circle(guint32 c) {
 					 150,
 					 GDK_INTERP_BILINEAR);
     gtk_image_set_from_pixbuf(im, sub_scaled);
+    gtk_image_set_from_pixbuf(im2, sub_scaled);
     g_object_unref(sub);
     g_object_unref(sub_scaled);
 
@@ -191,6 +199,7 @@ static void set_reference_circle(guint32 c) {
     new_text = g_strdup_printf("Radius: %g\nFuzziness: %g",
 			       r, circ->fuzz);
     gtk_label_set_text(text, new_text);
+    gtk_label_set_text(text2, new_text);
     g_free(new_text);
   }
 }
@@ -337,6 +346,7 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
 void on_calibrationImages_selection_changed (GtkIconView *view,
 					     gpointer user_data) {
   GtkWidget *w;
+  GtkWidget *w2;
 
   // reset reference image
   set_reference_circle(-1);
@@ -346,8 +356,11 @@ void on_calibrationImages_selection_changed (GtkIconView *view,
 
   // draw the offscreen items
   w = glade_xml_get_widget(g_xml, "selectedImage");
-  draw_scaled_offscreen_items(w->allocation.width,
-			      w->allocation.height);
+  draw_calibrate_offscreen_items(w->allocation.width,
+				 w->allocation.height);
+  w2 = glade_xml_get_widget(g_xml, "simulatedSearch");
+  draw_define_offscreen_items(w2->allocation.width,
+			      w2->allocation.height);
 }
 
 
@@ -405,7 +418,7 @@ gboolean on_selectedImage_motion_notify_event (GtkWidget      *widget,
 gboolean on_selectedImage_configure_event (GtkWidget         *widget,
 					   GdkEventConfigure *event,
 					   gpointer          user_data) {
-  draw_scaled_offscreen_items(event->width, event->height);
+  draw_calibrate_offscreen_items(event->width, event->height);
   return TRUE;
 }
 
