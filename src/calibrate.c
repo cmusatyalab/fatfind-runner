@@ -413,23 +413,15 @@ gboolean on_selectedImage_configure_event (GtkWidget         *widget,
 gboolean on_selectedImage_enter_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  if (event->mode == GDK_CROSSING_NORMAL) {
-    g_debug("enter selectedImage");
-    set_show_circles(TRUE);
-    return TRUE;
-  } else {
-    return FALSE;
-  }
+  g_debug("enter selectedImage");
+  set_show_circles(TRUE);
+  return TRUE;
 }
 
 gboolean on_selectedImage_leave_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  if (event->mode == GDK_CROSSING_NORMAL) {
-    g_debug("leave selectedImage");
-    set_show_circles(FALSE);
-    return TRUE;
-  } else {
-    return FALSE;
-  }
+  g_debug("leave selectedImage");
+  set_show_circles(FALSE);
+  return TRUE;
 }
