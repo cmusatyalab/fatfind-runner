@@ -20,6 +20,7 @@ static gboolean show_circles;
 static gfloat scale;
 
 guint32 reference_circle = -1;
+circle_type *reference_circle_object;
 
 static void list_deleter(gpointer data, gpointer user_data) {
   g_free(data);
@@ -147,6 +148,9 @@ static void set_reference_circle(guint32 c) {
 
     gtk_image_clear(im2);
     gtk_label_set_label(text2, "");
+
+    // set object
+    reference_circle_object = NULL;
   } else {
     // set image
     circle_type *circ = (circle_type *)
@@ -201,6 +205,9 @@ static void set_reference_circle(guint32 c) {
     gtk_label_set_text(text, new_text);
     gtk_label_set_text(text2, new_text);
     g_free(new_text);
+
+    // set object
+    reference_circle_object = (g_list_nth(circles, reference_circle))->data;
   }
 }
 

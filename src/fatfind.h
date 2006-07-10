@@ -6,7 +6,6 @@
 
 extern GladeXML *g_xml;
 extern GdkPixbuf *c_pix;
-extern guint32 reference_circle;
 extern GList *circles;
 
 typedef struct {
@@ -16,5 +15,7 @@ typedef struct {
   float fuzz;
 } circle_type;
 
+extern guint32 reference_circle;
+extern circle_type *reference_circle_object;
 
 #endif
