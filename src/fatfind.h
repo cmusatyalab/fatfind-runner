@@ -15,7 +15,11 @@ typedef struct {
   float fuzz;
 } circle_type;
 
+extern GtkListStore *saved_search_store;
 extern guint32 reference_circle;
 extern circle_type *reference_circle_object;
+
+extern GtkListStore *found_items;
+
 
 #endif

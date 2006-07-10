@@ -9,6 +9,7 @@
 #include "fatfind.h"
 #include "define.h"
 
+GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
 static float scale;
 
@@ -165,4 +166,31 @@ gboolean on_simulatedSearch_configure_event (GtkWidget         *widget,
 void on_define_search_value_changed (GtkRange *range,
 				     gpointer  user_data) {
   gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "simulatedSearch"));
+}
+
+void on_saveSearchButton_clicked (GtkButton *button,
+				  gpointer   user_data) {
+  GtkTreeIter iter;
+
+  gchar *save_name =
+    gtk_entry_get_text(GTK_ENTRY(glade_xml_get_widget(g_xml, "searchName")));
+
+  gdouble r_min = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
+  gdouble r_max = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
+
+  if (reference_circle_object == NULL) {
+    return;
+  }
+
+  // scale by reference
+  r_min *= reference_circle_object->r;
+  r_max *= reference_circle_object->r;
+
+  g_debug("making new search: %s", save_name);
+  gtk_list_store_append(saved_search_store, &iter);
+  gtk_list_store_set(saved_search_store, &iter,
+		     0, save_name,
+		     1, r_min,
+		     2, r_max,
+		     -1);
 }

@@ -15,6 +15,7 @@ fatfind_SOURCES = \
 	callbacks.c callbacks.h \
 	calibrate.c calibrate.h \
 	define.c define.h \
+	investigate.c investigate.h \
 	image.c
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)

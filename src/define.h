@@ -15,4 +15,7 @@ gboolean on_simulatedSearch_configure_event (GtkWidget         *widget,
 
 void on_define_search_value_changed (GtkRange *range,
 				     gpointer  user_data);
+
+void on_saveSearchButton_clicked (GtkButton *button,
+				  gpointer   user_data);
 #endif

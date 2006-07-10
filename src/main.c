@@ -18,6 +18,28 @@
 #include "fatfind.h"
 
 
+static void setup_saved_search_store(void) {
+  GtkTreeView *v = GTK_TREE_VIEW(glade_xml_get_widget(g_xml,
+						      "definedSearches"));
+  GtkCellRenderer *renderer;
+  GtkTreeViewColumn *column;
+
+  saved_search_store = gtk_list_store_new(3,
+					  G_TYPE_STRING,
+					  G_TYPE_DOUBLE,
+					  G_TYPE_DOUBLE);
+
+  gtk_tree_view_set_model(v, GTK_TREE_MODEL(saved_search_store));
+
+
+  renderer = gtk_cell_renderer_text_new();
+  column = gtk_tree_view_column_new_with_attributes ("Name",
+						     renderer,
+						     "text", 0,
+						     NULL);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (v), column);
+}
+
 static void setup_thumbnails(GtkIconView *g, gchar *file) {
   GtkListStore *s;
   GtkTreeIter iter;
@@ -31,8 +53,9 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
     exit(1);
   }
 
-  // create the model
+  // create the models
   s = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
+  found_items = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
 
 
   // get all the thumbnails
@@ -116,6 +139,9 @@ main (int argc, char *argv[])
   setup_thumbnails(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
 						      "calibrationImages")),
 		   argv[1]);
+
+  // init saved searches
+  setup_saved_search_store();
 
   gtk_widget_show_all(fatfind);
 
