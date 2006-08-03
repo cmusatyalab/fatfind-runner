@@ -17,6 +17,46 @@
 
 #include "fatfind.h"
 
+static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
+
+static void init_diamond(void) {
+  gid_list_t *gl;
+  int i;
+  int j;
+
+  printf("reading collections...\n");
+  {
+    void *cookie;
+    char *name;
+    int err;
+    int pos = 0;
+    err = nlkup_first_entry(&name, &cookie);
+    while(!err && pos < MAX_ALBUMS)
+      {
+	collections[pos].name = name;
+	collections[pos].active = pos ? 0 : 1; /* first one active */
+	pos++;
+	err = nlkup_next_entry(&name, &cookie);
+      }
+    collections[pos].name = NULL;
+  }
+
+
+  printf("reading gid_map...\n");
+  for (i=0; i<MAX_ALBUMS && collections[i].name; i++) {
+    if (collections[i].active) {
+      int err;
+      int num_gids = MAX_ALBUMS;
+      groupid_t gids[MAX_ALBUMS];
+      err = nlkup_lookup_collection(collections[i].name, &num_gids, gids);
+      g_assert(!err);
+      for (j=0; j < num_gids; j++) {
+	gl->gids[gl->num_gids++] = gids[j];
+      }
+    }
+  }
+}
+
 
 static void setup_saved_search_store(void) {
   GtkTreeView *v = GTK_TREE_VIEW(glade_xml_get_widget(g_xml,
@@ -142,6 +182,10 @@ main (int argc, char *argv[])
 
   // init saved searches
   setup_saved_search_store();
+
+  // initialize Diamond
+  init_diamond();
+
 
   gtk_widget_show_all(fatfind);
 

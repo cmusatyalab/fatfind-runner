@@ -20,6 +20,28 @@ GETTEXT_PACKAGE=fatfind
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
 
+# XXX replace mains with real functions
+AC_CHECK_LIB([dconfig], [main], ,
+        [AC_MSG_ERROR(Missing libdconfig)])
+AC_CHECK_LIB([dctl], [dctl_read_char], ,
+        [AC_MSG_ERROR(Missing libdctl)])
+AC_CHECK_LIB([filter], [main], ,
+        [AC_MSG_ERROR(Missing libfilter)])
+AC_CHECK_LIB([searchlet], [main], ,
+        [AC_MSG_ERROR(Missing libsearchlet)])
+AC_CHECK_LIB([odisk], [main], ,
+        [AC_MSG_ERROR(Missing libodisk)])
+AC_CHECK_LIB([filterexec], [main], ,
+        [AC_MSG_ERROR(Missing libfilterexec)])
+AC_CHECK_LIB([hstub], [main], ,
+        [AC_MSG_ERROR(Missing libhstub)])
+AC_CHECK_LIB([log], [main], ,
+        [AC_MSG_ERROR(Missing liblog)])
+AC_CHECK_LIB([tools], [main], ,
+        [AC_MSG_ERROR(Missing libtools)])
+
+
+
 dnl Add the languages which your application supports here.
 ALL_LINGUAS=""
 AM_GLIB_GNU_GETTEXT

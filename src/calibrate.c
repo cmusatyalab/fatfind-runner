@@ -40,13 +40,11 @@ static void draw_hitmap(void) {
     float x = c->x;
     float y = c->y;
     float r = c->r;
-    float fuzz = c->fuzz;
 
     // draw
     x *= scale;
     y *= scale;
     r *= scale;
-    fuzz *= scale;
 
     gdk_draw_arc(hitmap, gc, TRUE,
 		 x - r, y - r, 2 * r, 2 * r,
@@ -200,8 +198,7 @@ static void set_reference_circle(guint32 c) {
 
 
     // set text
-    new_text = g_strdup_printf("Radius: %g\nFuzziness: %g",
-			       r, circ->fuzz);
+    new_text = g_strdup_printf("Radius: %g\n", r);
     gtk_label_set_text(text, new_text);
     gtk_label_set_text(text2, new_text);
     g_free(new_text);
@@ -251,11 +248,12 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 
   while (1) {
     int result;
+    float fuzz;
 
     circle_type *c = g_new(circle_type, 1);
 
     result = fscanf(f, "%f %f %f %f\n",
-		    &c->x, &c->y, &c->r, &c->fuzz);
+		    &c->x, &c->y, &c->r, &fuzz);
     //    g_debug("%g %g %g %g",
     //	    c->x, c->y, c->r, c->fuzz);
 
@@ -300,7 +298,6 @@ static void draw_circles (GtkWidget *d) {
     float x = c->x;
     float y = c->y;
     float r = c->r;
-    float fuzz = c->fuzz;
 
     //g_debug("%g %g %g %g", x, y, r, fuzz);
 
@@ -308,7 +305,6 @@ static void draw_circles (GtkWidget *d) {
     x *= scale;
     y *= scale;
     r *= scale;
-    fuzz *= scale;
 
     //g_debug(" %g %g %g %g", x, y, r, fuzz);
 

@@ -18,8 +18,6 @@ static gboolean circle_match(circle_type *c) {
     gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
   gdouble r_max =
     gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
-  gdouble fuzz =
-    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "fuzzSlider")));
 
   if (reference_circle_object == NULL) {
     return FALSE;
@@ -28,7 +26,6 @@ static gboolean circle_match(circle_type *c) {
   // scale by reference
   r_min *= reference_circle_object->r;
   r_max *= reference_circle_object->r;
-  fuzz += reference_circle_object->fuzz;
 
   return ((c->r >= r_min) && (c->r <= r_max));
 	  /*
@@ -121,13 +118,11 @@ gboolean on_simulatedSearch_expose_event (GtkWidget *d,
 	float r = c->r;
 	float x = c->x - extra * r;
 	float y = c->y - extra * r;
-	float fuzz = c->fuzz;
 
 	// draw
 	x *= scale;
 	y *= scale;
 	r *= scale;
-	fuzz *= scale;
 
 
 	gdk_draw_arc(mask, mask_gc, TRUE,
