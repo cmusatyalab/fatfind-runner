@@ -18,9 +18,10 @@
 #include "fatfind.h"
 
 static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
+gid_list_t diamond_gid_list;
+ls_search_handle_t diamond_handle;
 
 static void init_diamond(void) {
-  gid_list_t *gl;
   int i;
   int j;
 
@@ -51,10 +52,26 @@ static void init_diamond(void) {
       err = nlkup_lookup_collection(collections[i].name, &num_gids, gids);
       g_assert(!err);
       for (j=0; j < num_gids; j++) {
-	gl->gids[gl->num_gids++] = gids[j];
+	diamond_gid_list.gids[diamond_gid_list.num_gids++] = gids[j];
       }
     }
   }
+
+  diamond_handle = ls_init_search();
+  ls_set_searchlist(diamond_handle, 1, &diamond_gid_list);
+
+  // XXX
+  /*
+  ls_start_search(diamond_handle);
+  while(1) {
+    ls_obj_handle_t obj;
+    void *data;
+    int len;
+    ls_next_object(diamond_handle, &obj, 0);
+    lf_read_attr(obj, "Display-Name", &len, &data);
+    printf("item: %s\n", data);
+  }
+  */
 }
 
 

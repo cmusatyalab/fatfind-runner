@@ -6,6 +6,7 @@
 
 #include "diamond_consts.h"
 #include "diamond_types.h"
+#include "lib_searchlet.h"
 
 extern GladeXML *g_xml;
 extern GdkPixbuf *c_pix;
@@ -31,6 +32,8 @@ struct collection_t
   int active;
 };
 
+extern gid_list_t diamond_gid_list;
+extern ls_search_handle_t diamond_handle;
 
 extern GtkListStore *saved_search_store;
 extern guint32 reference_circle;
