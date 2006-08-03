@@ -240,33 +240,10 @@ static void foreach_select_calibration(GtkIconView *icon_view,
     circles = NULL;
   }
 
-  f = fopen(txt, "r");
-  if (f == NULL) {
-    perror("can't read txt");
-    exit(1);
-  }
 
-  while (1) {
-    int result;
-    float fuzz;
-
-    circle_type *c = g_new(circle_type, 1);
-
-    result = fscanf(f, "%f %f %f %f\n",
-		    &c->x, &c->y, &c->r, &fuzz);
-    //    g_debug("%g %g %g %g",
-    //	    c->x, c->y, c->r, c->fuzz);
-
-    if (result == EOF) {
-      break;
-    } else if (result != 4) {
-      perror("bad result");
-      exit(1);
-    }
-
-    circles = g_list_prepend(circles, c);
-  }
-  fclose(f);
+  // compute the circles
+  circlesFromImage(cvLoadImage(pix, 1));
+  //    circles = g_list_prepend(circles, c);
 
   c_pix = gdk_pixbuf_new_from_file(pix, &err);
   if (err != NULL) {

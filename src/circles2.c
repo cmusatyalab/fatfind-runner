@@ -1,20 +1,21 @@
 #include <cv.h>
-#include <highgui.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
 
+#include "fatfind.h"
+
 // parameters
-static int dp = 2;
+static int dp = 1;
 static int minDist = 0;
 static int blur = 2;
 
-static int accumulatorThresh = 600;
+static int accumulatorThresh = 400;
 static const int accumulatorMax = 1000;
 
 static int minRadius = 5;
-static int maxRadius = 100;
-static int radiusStep = 4;
+static int maxRadius = 200;
+static int radiusStep = 2;
 
 static int cannyThreshold = 100;
 
@@ -23,11 +24,8 @@ static double scale = 1.0;
 
 
 // image storage
-static IplImage* initialImage;
 static IplImage* scaledImage;
 static IplImage* gray;
-
-static CvMemStorage* storage;
 
 
 static void addToMatrix (CvMat *m, int x, int y, double amount) {
@@ -93,12 +91,8 @@ static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
   }
 }
 
-static CvSeq* myHoughCircles (IplImage *image, void* circle_storage) {
-  // storage for the circles
-  CvSeq *circles = cvCreateSeq(CV_32FC3, sizeof(CvSeq),
-			       sizeof(float)*3, (CvMemStorage*)circle_storage);
-
-  const int numSlices = (maxRadius - minRadius) / (radiusStep + 1);
+static void myHoughCircles (IplImage *image) {
+  const int numSlices = (maxRadius - minRadius) / radiusStep;
 
   CvMat **acc;
   int i, j, x, y;
@@ -132,13 +126,15 @@ static CvSeq* myHoughCircles (IplImage *image, void* circle_storage) {
 
   // for each pixel in the canny, draw into the accumulator for each radius
   for (y = h - 1; y >= 0; y--) {
+    printf(".");
+    fflush(stdout);
     for (x = w - 1; x >= 0; x--) {
       // is there an edge at this point?
       if (image->imageData[y * dp * image->widthStep + x * dp]) {
       //      if (cvGet2D(image, y * dp, x * dp).val[0]) {
 	for (i = 0; i < numSlices; i++) {
 	  CvMat *slice = acc[i];
-	  int radius = minRadius + ((radiusStep + 1) * i);
+	  int radius = minRadius + (radiusStep * i);
 
 	  //printf("drawing circle: (%d,%d,%d)\n", x, y, radius);
 	  accumulateCircle(slice, x, y, radius);
@@ -146,12 +142,13 @@ static CvSeq* myHoughCircles (IplImage *image, void* circle_storage) {
       }
     }
   }
+  printf("\n");
 
 
   // walk over accumulator, eliminate anything < threshold
   for (i = 0; i < numSlices; i++) {
     CvMat *slice = acc[i];
-    int radius = minRadius + ((radiusStep + 1) * i);
+    int radius = minRadius + (radiusStep * i);
     double circ = 2.0 * M_PI * radius;
     double thresh = circ * ((double) accumulatorThresh) / ((double) accumulatorMax);
     int nonZero;
@@ -187,21 +184,22 @@ static CvSeq* myHoughCircles (IplImage *image, void* circle_storage) {
     CvMat *slice = acc[i];
     double min_val, max_val;
     CvPoint max_loc;
-    int radius = minRadius + ((radiusStep + 1) * i);
+    int radius = minRadius + (radiusStep * i);
 
     cvMinMaxLoc(slice, &min_val, &max_val, NULL, &max_loc, NULL);
     while(max_val > 0) {
       // found a point
-      float *p = cvAlloc(sizeof(float) * 3);
+      circle_type *c= g_malloc(sizeof(circle_type));
       int x = max_loc.y;
       int y = max_loc.x;
 
       //      printf("circle found; r: %d\n", radius);
 
-      p[0] = x * dp;
-      p[1] = y * dp;
-      p[2] = radius * dp;
-      cvSeqPush(circles, p);
+      c->x = x * dp / scale;
+      c->y = y * dp / scale;
+      c->r = radius * dp / scale;
+      circles = g_list_prepend(circles, c);
+      // XXX      cvSeqPush(circles, p);
 
       // wipe out region in all slices
 #if MAXIMA_BOTTOM_UP
@@ -209,34 +207,26 @@ static CvSeq* myHoughCircles (IplImage *image, void* circle_storage) {
 #else
       for (j = 0; j <= i; j++) {
 #endif
-	int newRadius = minRadius + ((radiusStep + 1) * j);
+	int newRadius = minRadius + (radiusStep * j);
 	cvCircle(acc[j], max_loc, minDist + newRadius, cvScalarAll(0), -1, 8, 0);
       }
 
       // find again
       cvMinMaxLoc(slice, &min_val, &max_val, NULL, &max_loc, NULL);
+      }
     }
-  }
 
 
-  // free
-  for (i = 0; i < numSlices; i++) {
-    cvReleaseMat(&(acc[i]));
-  }
-  cvFree((void *) &acc);
-
-  return circles;
+    // free
+    for (i = 0; i < numSlices; i++) {
+      cvReleaseMat(&(acc[i]));
+    }
+    cvFree((void *) &acc);
 }
 
-static void computeCircles(int pos) {
-  CvSeq* circles;
+static void computeCircles(int pos, IplImage *initialImage) {
   IplImage* tmpGrayImage = cvCreateImage(cvGetSize(scaledImage), 8, 3);
   IplImage* scaledGray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
-
-  // crappy bounds of highgui
-  if (minRadius <= 0) {
-    minRadius = 1;
-  }
 
   // get a fresh copy of the image, and scale it
   cvResize(initialImage, scaledImage, CV_INTER_LINEAR);
@@ -246,95 +236,38 @@ static void computeCircles(int pos) {
   cvCvtColor(scaledImage, gray, CV_BGR2GRAY);
 
   // get the circles (note that this modifies the input image with Canny)
-  circles = myHoughCircles(gray, storage);
-  int i;
-
-  // resize the now-Cannified input image
-  cvResize(gray, scaledGray, CV_INTER_AREA);
-
-  // convert the resized image to color so we can overlay the edges
-  cvCvtColor(scaledGray, tmpGrayImage, CV_GRAY2BGR);
-
-  // overlay the found edges onto the image for the screen
-  cvAdd(tmpGrayImage, scaledImage, scaledImage, NULL);
-  cvReleaseImage(&tmpGrayImage);
-
-  // draw the circles!
-  for(i = 0; i < circles->total; i++) {
-    float* p = (float*)cvGetSeqElem(circles, i);
-    //printf("%.10d %g %g %g\n",i, p[0], p[1], p[2]);
-    /*
-    cvCircle(scaledImage, cvPoint(cvRound(p[0]*scale),cvRound(p[1]*scale)), 3, CV_RGB(0,255,0), -1, 8, 0);
-    cvCircle(scaledImage, cvPoint(cvRound(p[0]*scale),cvRound(p[1]*scale)), cvRound(p[2]*scale), CV_RGB(255,0,0), 1, 8, 0);
-    */
-    cvCircle(scaledImage, cvPoint(cvRound(p[0]),cvRound(p[1])), 3, CV_RGB(0,255,0), -1, 8, 0);
-    cvCircle(scaledImage, cvPoint(cvRound(p[0]),cvRound(p[1])), cvRound(p[2]), CV_RGB(255,0,0), 1, 8, 0);
-    //cvFree(&p);
-  }
-
-  cvClearSeq(circles);
-
-  // finally, show the image
-  cvShowImage("circles", scaledImage);
+  myHoughCircles(gray);
 }
 
 
-int main(int argc, char** argv) {
-  if(argc == 2 && (initialImage=cvLoadImage(argv[1], 1))!= 0) {
-    int w = initialImage->width;
-    int h = initialImage->height;
+void circlesFromImage(IplImage *initialImage) {
+   int w = initialImage->width;
+   int h = initialImage->height;
 
-    // possibly scale down
-    if (w > 1024 || h > 768) {
-      if (w > h) {
-	scale = 1024.0 / w;
-      } else {
-	scale = 768.0 / h;
-      }
-      w *= scale;
-      h *= scale;
-    }
+   // possibly scale down
+   if (w > 1024 || h > 768) {
+     if (w > h) {
+       scale = 1024.0 / w;
+     } else {
+       scale = 768.0 / h;
+     }
+     w *= scale;
+     h *= scale;
+   }
 
-    printf("w: %d, h: %d, scale factor: %g\n", initialImage->width, initialImage->height, scale);
+   printf("w: %d, h: %d, scale factor: %g\n", initialImage->width, initialImage->height, scale);
 
-    // create where the scaled image will go
-    scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
+   // create where the scaled image will go
+   scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
 
-    // create the storage for the gray image used by the circle finder
-    //gray = cvCreateImage(cvGetSize(initialImage), 8, 1);
-    gray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
+   // create the storage for the gray image used by the circle finder
+   //gray = cvCreateImage(cvGetSize(initialImage), 8, 1);
+   gray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
 
-    storage = cvCreateMemStorage(0);
+   // do initial computation
+   computeCircles(-1, initialImage);
 
-    // setup the "gui"
-    cvNamedWindow("circles", 1);
-    cvCreateTrackbar("dp", "circles",
-		      &dp, 8, computeCircles);
-    cvCreateTrackbar("min dist", "circles",
-		      &minDist, 1000, computeCircles);
-    cvCreateTrackbar("canny threshold", "circles",
-		      &cannyThreshold, 1000, computeCircles);
-    cvCreateTrackbar("accumulator", "circles",
-		      &accumulatorThresh, accumulatorMax, computeCircles);
-    cvCreateTrackbar("min radius", "circles",
-		      &minRadius, 1000, computeCircles);
-    cvCreateTrackbar("max radius", "circles",
-		      &maxRadius, 1000, computeCircles);
-    cvCreateTrackbar("radius step", "circles",
-		      &radiusStep, 20, computeCircles);
-    cvCreateTrackbar("blur", "circles",
-		      &blur, 24, computeCircles);
-
-    // do initial computation
-    computeCircles(-1);
-
-    // wait for input from user
-    while (1) {
-      cvWaitKey(0);
-    }
-  } else {
-    printf("no image?\n");
-  }
-
-  return 0;
+   // free
+   // XXX
 }
+
