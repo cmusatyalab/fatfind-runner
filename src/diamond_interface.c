@@ -150,9 +150,8 @@ ls_search_handle_t diamond_circle_search(void) {
   dr = generic_search(name_used);
 
   // add filter
-  err = ls_add_filter_file(dr, DEV_ISA_IA32,
-			   FATFIND_FILTERDIR "/fil_circles.so");
-  g_assert(!err);
+  ls_add_filter_file(dr, DEV_ISA_IA32,
+		     FATFIND_FILTERDIR "/fil_circles.so");
 
   // now close
   fclose(f);
