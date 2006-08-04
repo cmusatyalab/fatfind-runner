@@ -4,10 +4,6 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
-#include "diamond_consts.h"
-#include "diamond_types.h"
-#include "lib_searchlet.h"
-
 extern GladeXML *g_xml;
 extern GdkPixbuf *c_pix;
 extern GList *circles;
@@ -20,20 +16,6 @@ typedef struct {
   float r;
 } circle_type;
 
-typedef struct {
-  int num_gids;
-  groupid_t gids[MAX_ALBUMS];
-} gid_list_t;
-
-struct collection_t
-{
-  char *name;
-  //int id;
-  int active;
-};
-
-extern gid_list_t diamond_gid_list;
-extern ls_search_handle_t diamond_handle;
 
 extern GtkListStore *saved_search_store;
 extern guint32 reference_circle;

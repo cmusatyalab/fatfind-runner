@@ -52,5 +52,6 @@ src/Makefile
 po/Makefile.in
 data/Makefile
 data/glade/Makefile
+data/filter/Makefile
 ])
 

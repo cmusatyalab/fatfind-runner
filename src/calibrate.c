@@ -2,13 +2,17 @@
 #  include <config.h>
 #endif
 
+#include "fatfind.h"
+
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <stdlib.h>
 
-#include "fatfind.h"
 #include "define.h"
 #include "calibrate.h"
+#include "circles2.h"
+
+#include <highgui.h>
 
 
 GdkPixbuf *c_pix;

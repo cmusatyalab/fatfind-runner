@@ -28,42 +28,36 @@ static IplImage* scaledImage;
 static IplImage* gray;
 
 
-static void addToMatrix (CvMat *m, int x, int y, double amount) {
-  CvScalar s;
-
-  if (x < 0 || y < 0 || x >= m->rows || y >= m->cols) {
-    return;
+static void addToMatrix (int *data, int x, int y, int rows, int cols) {
+  if (!(x < 0 || y < 0 || x >= rows || y >= cols)) {
+    data[x * cols + y]++;
   }
-  // amount = 1;      // for debugging only
-  m->data.fl[x * m->cols + y] += amount;
-  /*
-  s = cvGet2D(m, x, y);
-  s.val[0] += amount;
-  cvSet2D(m, x, y, s);
-  */
 }
 
-static void circlePoints(CvMat *img, int cx, int cy, int x, int y, double addAmount)
+static void circlePoints(CvMat *img, int cx, int cy, int x, int y)
 {
+  int *data = img->data.i;
+  int rows = img->rows;
+  int cols = img->cols;
   if (x == 0) {
-    addToMatrix(img, cx, cy + y, addAmount);
-    addToMatrix(img, cx, cy - y, addAmount);
-    addToMatrix(img, cx + y, cy, addAmount);
-    addToMatrix(img, cx - y, cy, addAmount);
+    addToMatrix(data, cx, cy + y, rows, cols);
+    addToMatrix(data, cx, cy - y, rows, cols);
+    addToMatrix(data, cx + y, cy, rows, cols);
+    addToMatrix(data, cx - y, cy, rows, cols);
   } else if (x == y) {
-    addToMatrix(img, cx + x, cy + y, addAmount);
-    addToMatrix(img, cx - x, cy + y, addAmount);
-    addToMatrix(img, cx + x, cy - y, addAmount);
-    addToMatrix(img, cx - x, cy - y, addAmount);
+    addToMatrix(data, cx + x, cy + y, rows, cols);
+    addToMatrix(data, cx - x, cy + y, rows, cols);
+    addToMatrix(data, cx + x, cy - y, rows, cols);
+    addToMatrix(data, cx - x, cy - y, rows, cols);
   } else if (x < y) {
-    addToMatrix(img, cx + x, cy + y, addAmount);
-    addToMatrix(img, cx - x, cy + y, addAmount);
-    addToMatrix(img, cx + x, cy - y, addAmount);
-    addToMatrix(img, cx - x, cy - y, addAmount);
-    addToMatrix(img, cx + y, cy + x, addAmount);
-    addToMatrix(img, cx - y, cy + x, addAmount);
-    addToMatrix(img, cx + y, cy - x, addAmount);
-    addToMatrix(img, cx - y, cy - x, addAmount);
+    addToMatrix(data, cx + x, cy + y, rows, cols);
+    addToMatrix(data, cx - x, cy + y, rows, cols);
+    addToMatrix(data, cx + x, cy - y, rows, cols);
+    addToMatrix(data, cx - x, cy - y, rows, cols);
+    addToMatrix(data, cx + y, cy + x, rows, cols);
+    addToMatrix(data, cx - y, cy + x, rows, cols);
+    addToMatrix(data, cx + y, cy - x, rows, cols);
+    addToMatrix(data, cx - y, cy - x, rows, cols);
   }
 }
 
@@ -74,11 +68,9 @@ static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
   int p = (5 - radius*4)/4;
 
 
-  double addAmount = 1;
-
   //printf("radius: %d, addAmount: %g\n", radius, addAmount);
 
-  circlePoints(img, xCenter, yCenter, x, y, addAmount);
+  circlePoints(img, xCenter, yCenter, x, y);
   while (x < y) {
     x++;
     if (p < 0) {
@@ -87,7 +79,7 @@ static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
       y--;
       p += 2*(x-y)+1;
     }
-    circlePoints(img, xCenter, yCenter, x, y, addAmount);
+    circlePoints(img, xCenter, yCenter, x, y);
   }
 }
 
@@ -109,7 +101,7 @@ static void myHoughCircles (IplImage *image) {
   //  printf("allocating slices ");
   //fflush(stdout);
   for (i = 0; i < numSlices; i++) {
-    acc[i] = cvCreateMat(w, h, CV_32FC1);
+    acc[i] = cvCreateMat(w, h, CV_32SC1);
     //printf(" %4d", i);
     //fflush(stdout);
 
@@ -162,8 +154,8 @@ static void myHoughCircles (IplImage *image) {
 	  cvSet2D(slice, x, y, cvScalarAll(0.0));
 	}
 	*/
-	if (slice->data.fl[y * slice->rows + x] < thresh) {
-	  slice->data.fl[y * slice->rows + x] = 0.0;
+	if (slice->data.i[y * slice->rows + x] < thresh) {
+	  slice->data.i[y * slice->rows + x] = 0.0;
 	}
       }
     }

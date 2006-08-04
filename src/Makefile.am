@@ -1,11 +1,13 @@
 ## Process this file with automake to produce Makefile.in
 
 gladedir = $(datadir)/fatfind/glade
+filterdir = $(datadir)/fatfind/filter
 
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DFATFIND_GLADEDIR=\""$(gladedir)"\" \
+	-DFATFIND_FILTERDIR=\""$(filterdir)"\" \
 	@PACKAGE_CFLAGS@
 
 bin_PROGRAMS = fatfind
@@ -16,7 +18,9 @@ fatfind_SOURCES = \
 	calibrate.c calibrate.h \
 	define.c define.h \
 	investigate.c investigate.h \
-	image.c circles2.c
+	image.c \
+	circles2.c circles2.h \
+	diamond_interface.c diamond_interface.h
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
 
