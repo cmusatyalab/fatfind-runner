@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "fatfind.h"
+#include "lib_filter.h"
 
 // parameters
 static int dp = 1;
@@ -14,7 +15,8 @@ static int accumulatorThresh = 400;
 static const int accumulatorMax = 1000;
 
 static int minRadius = 5;
-static int maxRadius = 200;
+//static int maxRadius = 200;
+static int maxRadius = 10;
 static int radiusStep = 2;
 
 static int cannyThreshold = 100;
@@ -83,7 +85,7 @@ static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
   }
 }
 
-static void myHoughCircles (IplImage *image) {
+static GList *myHoughCircles (IplImage *image, GList *clist) {
   const int numSlices = (maxRadius - minRadius) / radiusStep;
 
   CvMat **acc;
@@ -165,14 +167,9 @@ static void myHoughCircles (IplImage *image) {
   }
 
 
-#define MAXIMA_BOTTOM_UP 1
-
   // walk over accumulator again, searching for maxima and wiping out regions around them
-#if MAXIMA_BOTTOM_UP
   for (i = 0; i < numSlices; i++) {
-#else
-  for (i = numSlices - 1; i >= 0; i--) {
-#endif
+    //  for (i = numSlices - 1; i >= 0; i--) {
     CvMat *slice = acc[i];
     double min_val, max_val;
     CvPoint max_loc;
@@ -190,33 +187,31 @@ static void myHoughCircles (IplImage *image) {
       c->x = x * dp / scale;
       c->y = y * dp / scale;
       c->r = radius * dp / scale;
-      circles = g_list_prepend(circles, c);
-      // XXX      cvSeqPush(circles, p);
+      clist = g_list_prepend(clist, c);
 
       // wipe out region in all slices
-#if MAXIMA_BOTTOM_UP
       for (j = i; j < numSlices; j++) {
-#else
-      for (j = 0; j <= i; j++) {
-#endif
+	//for (j = 0; j <= i; j++) {
 	int newRadius = minRadius + (radiusStep * j);
 	cvCircle(acc[j], max_loc, minDist + newRadius, cvScalarAll(0), -1, 8, 0);
       }
 
       // find again
       cvMinMaxLoc(slice, &min_val, &max_val, NULL, &max_loc, NULL);
-      }
     }
+  }
 
 
-    // free
-    for (i = 0; i < numSlices; i++) {
-      cvReleaseMat(&(acc[i]));
-    }
-    cvFree((void *) &acc);
+  // free
+  for (i = 0; i < numSlices; i++) {
+    cvReleaseMat(&(acc[i]));
+  }
+  cvFree((void *) &acc);
+
+  return clist;
 }
 
-static void computeCircles(int pos, IplImage *initialImage) {
+static GList *computeCircles(int pos, IplImage *initialImage, GList *clist) {
   IplImage* tmpGrayImage = cvCreateImage(cvGetSize(scaledImage), 8, 3);
   IplImage* scaledGray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
 
@@ -228,7 +223,7 @@ static void computeCircles(int pos, IplImage *initialImage) {
   cvCvtColor(scaledImage, gray, CV_BGR2GRAY);
 
   // get the circles (note that this modifies the input image with Canny)
-  myHoughCircles(gray);
+  return myHoughCircles(gray, clist);
 }
 
 
@@ -257,9 +252,38 @@ void circlesFromImage(IplImage *initialImage) {
    gray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
 
    // do initial computation
-   computeCircles(-1, initialImage);
+   circles = computeCircles(-1, initialImage, circles);  // XXX circles is global
 
    // free
    // XXX
 }
 
+
+
+// 3 functions for diamond filter interface
+
+int f_init_circles (int num_arg, char **args,
+		    int bloblen, void *blob_data,
+		    const char *filter_name,
+		    void **filter_args) {
+  // TODO
+
+  *filter_args = NULL;
+  return 0;
+}
+
+
+
+int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
+  // TODO
+
+  return 100;
+}
+
+
+
+int f_fini_circles (void *filter_args) {
+  // TODO
+
+  return 0;
+}

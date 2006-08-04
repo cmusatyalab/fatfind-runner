@@ -8,6 +8,7 @@
 
 #include "fatfind.h"
 #include "investigate.h"
+#include "diamond_interface.h"
 
 GtkListStore *found_items;
 
@@ -22,6 +23,8 @@ void on_clearSearch_clicked (GtkButton *button,
 
 void on_startSearch_clicked (GtkButton *button,
 			     gpointer   user_data) {
+  ls_search_handle_t dr;
+
   // get the selected search
   GtkTreeIter s_iter;
   GtkTreeSelection *selection =
@@ -45,6 +48,8 @@ void on_startSearch_clicked (GtkButton *button,
 
     // build model
     
+    // XXX diamond
+    dr = diamond_circle_search();
   }
 }
 

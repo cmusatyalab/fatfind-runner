@@ -2,18 +2,18 @@
 
 #include "fatfind.h"
 #include "diamond_interface.h"
+#include <sys/stat.h>
+#include <fcntl.h>
 
 static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
 static gid_list_t diamond_gid_list;
 
-static ls_search_handle_t init_diamond(void) {
+static void diamond_init(void) {
   int i;
   int j;
   int err;
   void *cookie;
   char *name;
-
-  ls_search_handle_t diamond_handle;
 
   if (diamond_gid_list.num_gids != 0) {
     // already initialized
@@ -48,20 +48,53 @@ static ls_search_handle_t init_diamond(void) {
       }
     }
   }
+}
+
+static ls_search_handle_t generic_search (char *filter_spec_name) {
+  ls_search_handle_t diamond_handle;
+  int f1, f2;
+  int err;
+
+  char buf[1];;
+
+  diamond_init();
 
   diamond_handle = ls_init_search();
   err = ls_set_searchlist(diamond_handle, 1, diamond_gid_list.gids);
   g_assert(!err);
 
+  // append our stuff
+  f1 = g_open(FATFIND_FILTERDIR "/rgb-filter.txt", O_RDONLY);
+  if (f1 == -1) {
+    perror("can't open " FATFIND_FILTERDIR "/rgb-filter.txt");
+    return NULL;
+  }
+
+  f2 = g_open(filter_spec_name, O_WRONLY | O_APPEND);
+  if (f2 == -1) {
+    printf("can't open %s", filter_spec_name);
+    perror("");
+    return NULL;
+  }
+
+  while (read(f1, buf, 1) > 0) {
+    write(f2, buf, 1);   // PERF
+  }
+
+  close(f1);
+  close(f2);
+
   err = ls_set_searchlet(diamond_handle, DEV_ISA_IA32,
 			 FATFIND_FILTERDIR "/fil_rgb.so",
-			 FATFIND_FILTERDIR "/rgb-filter.txt");
+			 filter_spec_name);
   g_assert(!err);
 
 
   return diamond_handle;
 
   // XXX
+
+  /*
   ls_start_search(diamond_handle);
   while(1) {
     ls_obj_handle_t obj;
@@ -85,6 +118,50 @@ static ls_search_handle_t init_diamond(void) {
     err = ls_release_object(diamond_handle, obj);
     g_assert(!err);
   }
+  */
 }
 
+
+ls_search_handle_t diamond_circle_search(void) {
+  ls_search_handle_t dr;
+  int fd;
+  FILE *f;
+  gchar *name_used;
+
+  // temporary file
+  fd = g_file_open_tmp(NULL, &name_used, NULL);
+  g_assert(fd >= 0);
+
+  // write out file for circle search
+  f = fdopen(fd, "a");
+  g_return_val_if_fail(f, NULL);
+  fprintf(f, "\n\n"
+	  "FILTER circles\n"
+	  "THRESHOLD 50\n"
+	  "EVAL_FUNCTION  f_eval_circles\n"
+	  "INIT_FUNCTION  f_init_circles\n"
+	  "FINI_FUNCTION  f_fini_circles\n"
+	  /* ARGs go here */
+	  "REQUIRES  RGB # dependencies\n"
+	  "MERIT  50 # some relative cost\n");
+  fflush(f);
+
+  // initialize with generic search
+  dr = generic_search(name_used);
+
+  // add filter
+  err = ls_add_filter_file(dr, DEV_ISA_IA32,
+			   FATFIND_FILTERDIR "/fil_circles.so");
+  g_assert(!err);
+
+  // now close
+  fclose(f);
+  g_free(name_used);
+
+  // start search
+  ls_start_search(dr);
+
+  // return
+  return dr;
+}
 
