@@ -138,15 +138,17 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   err = lf_ref_attr(obj, "circle-data", &len, &data);
   g_assert(!err);
-  for (i = 0; i < len / sizeof(int); i++) {
-    int *p = (int *) data + i * 3;
+
+  // XXX
+  for (i = 0; i < len / sizeof(float); i += 3) {
+    float *p = ((float *) data) + i;
     circle_type c;
 
     c.x = p[0];
     c.y = p[1];
     c.r = p[2];
 
-    printf(" circle: (%4d, %4d) %3d\n", c.x, c.y, c.r);
+    
   }
 
 

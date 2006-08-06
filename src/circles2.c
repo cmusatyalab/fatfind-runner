@@ -335,7 +335,7 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
 
   // for attributes from diamond
   int len;
-  void *data;
+  unsigned char *data;
 
 
 
@@ -365,16 +365,15 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
 
   // add the list of circles to the cache and the object
   // XXX
-  // XXX
   num_circles = g_list_length(clist);
   if (num_circles > 0) {
     GList *l = clist;
     int i = 0;
-    data = g_malloc(sizeof(int) * 3 * num_circles);
+    data = g_malloc(sizeof(float) * 3 * num_circles);
 
     // pack in
     while (l != NULL) {
-      int *p = ((int *) data) + i;
+      float *p = ((float *) data) + i;
       circle_type *c = l->data;
       p[0] = c->x;
       p[1] = c->y;
@@ -383,8 +382,8 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
       i += 3;
       l = g_list_next(l);
     }
+    lf_write_attr(ohandle, "circle-data", sizeof(float) * 3 * num_circles, data);
   }
-  lf_write_attr(ohandle, "circle-data", sizeof(int) * 3 * num_circles, data);
 
 
   // free header
