@@ -3,8 +3,11 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "fatfind.h"
+#include "circles2.h"
 #include "lib_filter.h"
+
+
+GList *circles;
 
 // parameters
 static int dp = 1;

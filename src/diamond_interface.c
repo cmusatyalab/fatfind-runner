@@ -1,6 +1,5 @@
 #include <glib.h>
 
-#include "fatfind.h"
 #include "diamond_interface.h"
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -91,34 +90,6 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 
 
   return diamond_handle;
-
-  // XXX
-
-  /*
-  ls_start_search(diamond_handle);
-  while(1) {
-    ls_obj_handle_t obj;
-    void *data;
-    int len;
-    err = ls_next_object(diamond_handle, &obj, 0);
-    if (err) {
-      break;
-    }
-
-    printf("got object: %p\n", obj);
-
-    printf("calling lf_first_attr with %p %p %p %p %p\n",
-	   obj, &name, &len, &data, &cookie);
-    err = lf_first_attr(obj, &name, &len, &data, &cookie);
-    while (!err) {
-      printf(" attr name: %s, length: %d\n", name, len);
-      err = lf_next_attr(obj, &name, &len, &data, &cookie);
-    }
-
-    err = ls_release_object(diamond_handle, obj);
-    g_assert(!err);
-  }
-  */
 }
 
 
@@ -127,6 +98,7 @@ ls_search_handle_t diamond_circle_search(void) {
   int fd;
   FILE *f;
   gchar *name_used;
+  int err;
 
   // temporary file
   fd = g_file_open_tmp(NULL, &name_used, NULL);
@@ -150,8 +122,9 @@ ls_search_handle_t diamond_circle_search(void) {
   dr = generic_search(name_used);
 
   // add filter
-  ls_add_filter_file(dr, DEV_ISA_IA32,
-		     FATFIND_FILTERDIR "/fil_circles.so");
+  err = ls_add_filter_file(dr, DEV_ISA_IA32,
+			   FATFIND_FILTERDIR "/fil_circle.so");
+  g_assert(!err);
 
   // now close
   fclose(f);
@@ -159,6 +132,33 @@ ls_search_handle_t diamond_circle_search(void) {
 
   // start search
   ls_start_search(dr);
+
+  // XXX
+  while(1) {
+    ls_obj_handle_t obj;
+    void *data;
+    char *name;
+    void *cookie;
+    int len;
+    err = ls_next_object(dr, &obj, 0);
+    if (err) {
+      break;
+    }
+
+    printf("got object: %p\n", obj);
+
+    printf("calling lf_first_attr with %p %p %p %p %p\n",
+	   obj, &name, &len, &data, &cookie);
+    err = lf_first_attr(obj, &name, &len, &data, &cookie);
+    while (!err) {
+      printf(" attr name: %s, length: %d\n", name, len);
+      err = lf_next_attr(obj, &name, &len, &data, &cookie);
+    }
+
+    err = ls_release_object(dr, obj);
+    g_assert(!err);
+  }
+
 
   // return
   return dr;

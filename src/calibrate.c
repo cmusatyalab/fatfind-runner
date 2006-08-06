@@ -19,7 +19,6 @@ GdkPixbuf *c_pix;
 static GdkPixbuf *c_pix_scaled;
 
 static GdkPixmap *hitmap;
-GList *circles;
 static gboolean show_circles;
 static gfloat scale;
 

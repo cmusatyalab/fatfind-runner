@@ -5,7 +5,9 @@
 #include "diamond_types.h"
 #include "lib_searchlet.h"
 
+#include <stdio.h>
 
+#define MAX_ALBUMS 32
 
 typedef struct {
   int num_gids;

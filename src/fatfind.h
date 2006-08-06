@@ -4,17 +4,10 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
+#include "circles2.h"
+
 extern GladeXML *g_xml;
 extern GdkPixbuf *c_pix;
-extern GList *circles;
-
-#define MAX_ALBUMS 32
-
-typedef struct {
-  float x;
-  float y;
-  float r;
-} circle_type;
 
 
 extern GtkListStore *saved_search_store;
