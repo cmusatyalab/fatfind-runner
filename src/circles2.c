@@ -7,30 +7,33 @@
 #include "lib_filter.h"
 
 
-GList *circles;
+GList *circles;  // XXX for gui only, not filter
 
-// parameters
-static int dp = 1;
-static int minDist = 0;
-static int blur = 2;
-
-static int accumulatorThresh = 400;
 static const int accumulatorMax = 1000;
 
-static int minRadius = 5;
-//static int maxRadius = 200;
-static int maxRadius = 10;
-static int radiusStep = 2;
+typedef struct {
+  int dp;
+  int minDist;
+  int blur;
 
-static int cannyThreshold = 100;
+  int accumulatorThresh;
 
-// scale factor for image
-static double scale = 1.0;
+  int minRadius;
+  int maxRadius;
+  int radiusStep;
+
+  int cannyThreshold;
+
+  double scale;
+
+  IplImage *scaledImage;
+  IplImage *gray;
+} circles_state_t;
 
 
-// image storage
-static IplImage* scaledImage;
-static IplImage* gray;
+// static parameters
+static circles_state_t staticState =
+  {1, 0, 2, 400, 5, 10, 2, 100, 1.0, NULL, NULL};
 
 
 static void addToMatrix (int *data, int x, int y, int rows, int cols) {
@@ -66,7 +69,8 @@ static void circlePoints(CvMat *img, int cx, int cy, int x, int y)
   }
 }
 
-static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
+static void accumulateCircle(circles_state_t *cr,
+			     CvMat *img, int xCenter, int yCenter, int radius)
 {
   int x = 0;
   int y = radius;
@@ -88,14 +92,15 @@ static void accumulateCircle(CvMat *img, int xCenter, int yCenter, int radius)
   }
 }
 
-static GList *myHoughCircles (IplImage *image, GList *clist) {
-  const int numSlices = (maxRadius - minRadius) / radiusStep;
+static GList *myHoughCircles (circles_state_t *cr,
+			      IplImage *image, GList *clist) {
+  const int numSlices = (cr->maxRadius - cr->minRadius) / cr->radiusStep;
 
   CvMat **acc;
   int i, j, x, y;
 
-  const int w = image->width / dp;
-  const int h = image->height / dp;
+  const int w = image->width / cr->dp;
+  const int h = image->height / cr->dp;
 
   IplImage *houghScaledImage = cvCreateImage(cvSize(w, h), 8, 1);
   cvResize(image, houghScaledImage, CV_INTER_NN);
@@ -116,9 +121,9 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
   }
 
   // do canny
-  cvSmooth(image, image, CV_GAUSSIAN, blur*2+1, blur*2+1, 0);
+  cvSmooth(image, image, CV_GAUSSIAN, cr->blur*2+1, cr->blur*2+1, 0);
   //  cvCanny(image, image, MAX(cannyThreshold/4,1), cannyThreshold, 3);
-  cvCanny(image, image, 0, cannyThreshold, 3);
+  cvCanny(image, image, 0, cr->cannyThreshold, 3);
   //  cvResize(houghScaledImage, image, CV_INTER_NN);
 
   // for each pixel in the canny, draw into the accumulator for each radius
@@ -127,14 +132,14 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
     fflush(stdout);
     for (x = w - 1; x >= 0; x--) {
       // is there an edge at this point?
-      if (image->imageData[y * dp * image->widthStep + x * dp]) {
+      if (image->imageData[y * cr->dp * image->widthStep + x * cr->dp]) {
       //      if (cvGet2D(image, y * dp, x * dp).val[0]) {
 	for (i = 0; i < numSlices; i++) {
 	  CvMat *slice = acc[i];
-	  int radius = minRadius + (radiusStep * i);
+	  int radius = cr->minRadius + (cr->radiusStep * i);
 
 	  //printf("drawing circle: (%d,%d,%d)\n", x, y, radius);
-	  accumulateCircle(slice, x, y, radius);
+	  accumulateCircle(cr, slice, x, y, radius);
 	}
       }
     }
@@ -145,9 +150,10 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
   // walk over accumulator, eliminate anything < threshold
   for (i = 0; i < numSlices; i++) {
     CvMat *slice = acc[i];
-    int radius = minRadius + (radiusStep * i);
+    int radius = cr->minRadius + (cr->radiusStep * i);
     double circ = 2.0 * M_PI * radius;
-    double thresh = circ * ((double) accumulatorThresh) / ((double) accumulatorMax);
+    double thresh = circ * ((double) cr->accumulatorThresh) /
+      ((double) accumulatorMax);
     int nonZero;
 
     nonZero = cvCountNonZero(slice);
@@ -176,7 +182,7 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
     CvMat *slice = acc[i];
     double min_val, max_val;
     CvPoint max_loc;
-    int radius = minRadius + (radiusStep * i);
+    int radius = cr->minRadius + (cr->radiusStep * i);
 
     cvMinMaxLoc(slice, &min_val, &max_val, NULL, &max_loc, NULL);
     while(max_val > 0) {
@@ -187,16 +193,17 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
 
       //      printf("circle found; r: %d\n", radius);
 
-      c->x = x * dp / scale;
-      c->y = y * dp / scale;
-      c->r = radius * dp / scale;
+      c->x = x * cr->dp / cr->scale;
+      c->y = y * cr->dp / cr->scale;
+      c->r = radius * cr->dp / cr->scale;
       clist = g_list_prepend(clist, c);
 
       // wipe out region in all slices
       for (j = i; j < numSlices; j++) {
 	//for (j = 0; j <= i; j++) {
-	int newRadius = minRadius + (radiusStep * j);
-	cvCircle(acc[j], max_loc, minDist + newRadius, cvScalarAll(0), -1, 8, 0);
+	int newRadius = cr->minRadius + (cr->radiusStep * j);
+	cvCircle(acc[j], max_loc, cr->minDist + newRadius,
+		 cvScalarAll(0), -1, 8, 0);
       }
 
       // find again
@@ -214,51 +221,63 @@ static GList *myHoughCircles (IplImage *image, GList *clist) {
   return clist;
 }
 
-static GList *computeCircles(int pos, IplImage *initialImage, GList *clist) {
-  IplImage* tmpGrayImage = cvCreateImage(cvGetSize(scaledImage), 8, 3);
-  IplImage* scaledGray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
+static GList *computeCircles(circles_state_t *cr,
+			     int pos, IplImage *initialImage, GList *clist) {
+  IplImage* tmpGrayImage = cvCreateImage(cvGetSize(cr->scaledImage), 8, 3);
+  IplImage* scaledGray = cvCreateImage(cvGetSize(cr->scaledImage), 8, 1);
 
   // get a fresh copy of the image, and scale it
-  cvResize(initialImage, scaledImage, CV_INTER_LINEAR);
+  cvResize(initialImage, cr->scaledImage, CV_INTER_LINEAR);
 
   // convert the image to gray (maybe scaled?)
   //cvCvtColor(initialImage, gray, CV_BGR2GRAY);
-  cvCvtColor(scaledImage, gray, CV_BGR2GRAY);
+  cvCvtColor(cr->scaledImage, cr->gray, CV_BGR2GRAY);
 
   // get the circles (note that this modifies the input image with Canny)
-  return myHoughCircles(gray, clist);
+  return myHoughCircles(cr, cr->gray, clist);
 }
 
 
-void circlesFromImage(IplImage *initialImage) {
+GList *circlesFromImage2(circles_state_t *cr, IplImage *initialImage) {
    int w = initialImage->width;
    int h = initialImage->height;
+   GList *circList;
 
    // possibly scale down
    if (w > 1024 || h > 768) {
      if (w > h) {
-       scale = 1024.0 / w;
+       cr->scale = 1024.0 / w;
      } else {
-       scale = 768.0 / h;
+       cr->scale = 768.0 / h;
      }
-     w *= scale;
-     h *= scale;
+     w *= cr->scale;
+     h *= cr->scale;
    }
 
-   printf("w: %d, h: %d, scale factor: %g\n", initialImage->width, initialImage->height, scale);
+   printf("w: %d, h: %d, scale factor: %g\n",
+	  initialImage->width,
+	  initialImage->height,
+	  cr->scale);
 
    // create where the scaled image will go
-   scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
+   cr->scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
 
    // create the storage for the gray image used by the circle finder
    //gray = cvCreateImage(cvGetSize(initialImage), 8, 1);
-   gray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
+   cr->gray = cvCreateImage(cvGetSize(cr->scaledImage), 8, 1);
 
    // do initial computation
-   circles = computeCircles(-1, initialImage, circles);  // XXX circles is global
+   circList = computeCircles(cr, -1, initialImage, NULL);
 
    // free
    // XXX
+   return circList;
+}
+
+
+// called from GUI
+void circlesFromImage(IplImage *initialImage) {
+  circles = circlesFromImage2(&staticState, initialImage);
 }
 
 
