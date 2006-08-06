@@ -31,6 +31,13 @@ static const circles_state_t staticState =
   {1, 0, 2, 400, 5, 10, 2, 100};
 
 
+// helper function for glist
+static void free_1_circle(gpointer data, gpointer user_data) {
+  g_free((circle_type *) data);
+}
+
+
+// the guts
 static void addToMatrix (int *data, int x, int y, int rows, int cols) {
   if (!(x < 0 || y < 0 || x >= rows || y >= cols)) {
     data[x * cols + y]++;
@@ -64,7 +71,7 @@ static void circlePoints(CvMat *img, int cx, int cy, int x, int y)
   }
 }
 
-static void accumulateCircle(circles_state_t *cr,
+static void accumulateCircle(const circles_state_t *cr,
 			     CvMat *img, int xCenter, int yCenter,
 			     int radius, double scale)
 {
@@ -88,7 +95,7 @@ static void accumulateCircle(circles_state_t *cr,
   }
 }
 
-static GList *myHoughCircles (circles_state_t *cr,
+static GList *myHoughCircles (const circles_state_t *cr,
 			      IplImage *image,
 			      double scale) {
   const int numSlices = (cr->maxRadius - cr->minRadius) / cr->radiusStep;
@@ -186,7 +193,7 @@ static GList *myHoughCircles (circles_state_t *cr,
     cvMinMaxLoc(slice, &min_val, &max_val, NULL, &max_loc, NULL);
     while(max_val > 0) {
       // found a point
-      circle_type *c= g_malloc(sizeof(circle_type));
+      circle_type *c = g_malloc(sizeof(circle_type));
       int x = max_loc.y;
       int y = max_loc.x;
 
@@ -220,8 +227,8 @@ static GList *myHoughCircles (circles_state_t *cr,
   return clist;
 }
 
-static GList *computeCircles(circles_state_t *cr,
-			     IplImage *initialImage,
+static GList *computeCircles(const circles_state_t *cr,
+			     const IplImage *initialImage,
 			     IplImage *scaledImage,
 			     IplImage *gray,
 			     double scale) {
@@ -240,7 +247,8 @@ static GList *computeCircles(circles_state_t *cr,
 }
 
 
-GList *circlesFromImage2(circles_state_t *cr, IplImage *initialImage) {
+static GList *circlesFromImage2(const circles_state_t *cr,
+				const IplImage *initialImage) {
    int w = initialImage->width;
    int h = initialImage->height;
    GList *circList;
@@ -281,7 +289,7 @@ GList *circlesFromImage2(circles_state_t *cr, IplImage *initialImage) {
 
 
 // called from GUI
-void circlesFromImage(IplImage *initialImage) {
+void circlesFromImage(const IplImage *initialImage) {
   circles = circlesFromImage2(&staticState, initialImage);
 }
 
@@ -293,12 +301,26 @@ int f_init_circles (int num_arg, char **args,
 		    int bloblen, void *blob_data,
 		    const char *filter_name,
 		    void **filter_args) {
+  circles_state_t *cr;
+
+  // check parameters
+  if (num_arg != 8) {
+    return -1;
+  }
+
   // init state
-  circles_state_t *cr = g_malloc0(sizeof(circles_state_t));
+  cr = g_malloc0(sizeof(circles_state_t));
 
-  // fill in with parameters
-  
+  cr->dp = g_ascii_strtoull(args[0], NULL, 10);
+  cr->minDist = g_ascii_strtoull(args[1], NULL, 10);
+  cr->blur = g_ascii_strtoull(args[2], NULL, 10);
+  cr->accumulatorThresh = g_ascii_strtoull(args[3], NULL, 10);
+  cr->minRadius = g_ascii_strtoull(args[4], NULL, 10);
+  cr->maxRadius = g_ascii_strtoull(args[5], NULL, 10);
+  cr->radiusStep = g_ascii_strtoull(args[6], NULL, 10);
+  cr->cannyThreshold = g_ascii_strtoull(args[7], NULL, 10);
 
+  // we're good
   *filter_args = cr;
   return 0;
 }
@@ -306,9 +328,77 @@ int f_init_circles (int num_arg, char **args,
 
 
 int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
-  // TODO
+  // circles
+  GList *clist;
+  circles_state_t *cr = (circles_state_t *) filter_args;
+  int num_circles;
 
-  return 100;
+  // for attributes from diamond
+  int len;
+  void *data;
+
+
+
+  // get the data from the ohandle, convert to IplImage
+  int w;
+  int h;
+  IplImage *img;
+
+  // width
+  lf_ref_attr(ohandle, "_rows.int", &len, &data);
+  w = *((int *) data);
+
+  // height
+  lf_ref_attr(ohandle, "_cols.int", &len, &data);
+  h = *((int *) data);
+
+  // image data
+  lf_ref_attr(ohandle, "_rgb_image.rgbimage", &len, &data);
+  img = cvCreateImageHeader(cvSize(w, h), IPL_DEPTH_8U, 3);
+  img->imageData = data;
+
+  data = NULL;
+
+
+  // feed it to our processor
+  clist = circlesFromImage2(cr, img);
+
+  // add the list of circles to the cache and the object
+  // XXX
+  // XXX
+  num_circles = g_list_length(clist);
+  if (num_circles > 0) {
+    GList *l = clist;
+    int i = 0;
+    data = g_malloc(sizeof(int) * 3 * num_circles);
+
+    // pack in
+    while (l != NULL) {
+      int *p = ((int *) data) + i;
+      circle_type *c = l->data;
+      p[0] = c->x;
+      p[1] = c->y;
+      p[2] = c->r;
+
+      i += 3;
+      l = g_list_next(l);
+    }
+  }
+  lf_write_attr(ohandle, "circle-data", sizeof(int) * 3 * num_circles, data);
+
+
+  // free header
+  cvReleaseImageHeader(&img);
+
+  // free others
+  g_list_foreach(clist, free_1_circle, NULL);
+  g_list_free(clist);
+  clist = NULL;
+  g_free(data);
+  data = NULL;
+
+  // return number of circles
+  return num_circles;
 }
 
 

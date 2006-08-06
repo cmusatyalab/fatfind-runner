@@ -107,6 +107,8 @@ gboolean diamond_result_callback(gpointer g_data) {
   int len;
   int err;
 
+  int i;
+
   GtkTreeIter iter;
 
 
@@ -127,11 +129,25 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   printf("got object: %p\n", obj);
   err = lf_ref_attr(obj, "Display-Name", &len, &data);
+  g_assert(!err);
 
   gtk_list_store_append(found_items, &iter);
   gtk_list_store_set(found_items, &iter,
 		     1, data,
 		     -1);
+
+  err = lf_ref_attr(obj, "circle-data", &len, &data);
+  g_assert(!err);
+  for (i = 0; i < len / sizeof(int); i++) {
+    int *p = (int *) data + i * 3;
+    circle_type c;
+
+    c.x = p[0];
+    c.y = p[1];
+    c.r = p[2];
+
+    printf(" circle: (%4d, %4d) %3d\n", c.x, c.y, c.r);
+  }
 
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
@@ -147,7 +163,10 @@ gboolean diamond_result_callback(gpointer g_data) {
 }
 
 
-ls_search_handle_t diamond_circle_search(void) {
+ls_search_handle_t diamond_circle_search(int dp, int minDist,
+					 int blur, int accumulatorThresh,
+					 int minRadius, int maxRadius,
+					 int radiusStep, int cannyThreshold) {
   ls_search_handle_t dr;
   int fd;
   FILE *f;
@@ -163,13 +182,23 @@ ls_search_handle_t diamond_circle_search(void) {
   g_return_val_if_fail(f, NULL);
   fprintf(f, "\n\n"
 	  "FILTER circles\n"
-	  "THRESHOLD 50\n"
+	  "THRESHOLD 1\n"
 	  "EVAL_FUNCTION  f_eval_circles\n"
 	  "INIT_FUNCTION  f_init_circles\n"
 	  "FINI_FUNCTION  f_fini_circles\n"
-	  /* ARGs go here */
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
+	  "ARG  %d\n"
 	  "REQUIRES  RGB # dependencies\n"
-	  "MERIT  50 # some relative cost\n");
+	  "MERIT  50 # some relative cost\n",
+	  dp, minDist, blur, accumulatorThresh,
+	  minRadius, maxRadius, radiusStep,
+	  cannyThreshold);
   fflush(f);
 
   // initialize with generic search

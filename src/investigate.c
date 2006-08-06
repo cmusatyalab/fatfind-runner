@@ -30,24 +30,25 @@ void on_startSearch_clicked (GtkButton *button,
   GtkTreeSelection *selection =
     gtk_tree_view_get_selection(GTK_TREE_VIEW(glade_xml_get_widget(g_xml,
 								   "definedSearches")));
+  GtkTreeModel *model = GTK_TREE_MODEL(saved_search_store);
 
   g_debug("selection: %p", selection);
 
   if (gtk_tree_selection_get_selected(selection,
-				      &saved_search_store,
+				      &model,
 				      &s_iter)) {
     gdouble r_min;
     gdouble r_max;
 
-    g_debug("saved_search_store: %p", saved_search_store);
-    gtk_tree_model_get(GTK_TREE_MODEL(saved_search_store),
+    g_debug("saved_search_store: %p", model);
+    gtk_tree_model_get(model,
 		       &s_iter,
 		       1, &r_min, 2, &r_max, -1);
 
     g_debug("searching from %g to %g", r_min, r_max);
 
     // diamond
-    dr = diamond_circle_search();
+    dr = diamond_circle_search(1, 0, 2, 400, r_min, r_max, 2, 100);
 
     // take the handle, put it into the idle callback to get
     // the results?

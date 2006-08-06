@@ -13,6 +13,6 @@ typedef struct {
 } circle_type;
 
 
-void circlesFromImage(IplImage *initialImage);
+void circlesFromImage(const IplImage *initialImage);
 
 #endif
