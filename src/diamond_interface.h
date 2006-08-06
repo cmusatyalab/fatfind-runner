@@ -23,5 +23,7 @@ struct collection_t
 
 
 ls_search_handle_t diamond_circle_search (void);
+gboolean diamond_result_callback(gpointer data);
+
 
 #endif

@@ -1,8 +1,11 @@
 #include <glib.h>
 
 #include "diamond_interface.h"
+#include "fatfind.h"
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <gtk/gtk.h>
 
 static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
 static gid_list_t diamond_gid_list;
@@ -93,6 +96,57 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 }
 
 
+gboolean diamond_result_callback(gpointer g_data) {
+  // this gets 0 or 1 result from diamond and puts it into the
+  // icon view
+
+  ls_obj_handle_t obj;
+  void *data;
+  char *name;
+  void *cookie;
+  int len;
+  int err;
+
+  GtkTreeIter iter;
+
+
+  // get handle
+  ls_search_handle_t dr = (ls_search_handle_t) g_data;
+
+  err = ls_next_object(dr, &obj, LSEARCH_NO_BLOCK);
+
+  // XXX should be able to use select()
+  if (err == EWOULDBLOCK) {
+    // no results right now
+    return TRUE;
+  } else if (err) {
+    // no more results
+    ls_abort_search(dr);
+    return FALSE;
+  }
+
+  printf("got object: %p\n", obj);
+  err = lf_ref_attr(obj, "Display-Name", &len, &data);
+
+  gtk_list_store_append(found_items, &iter);
+  gtk_list_store_set(found_items, &iter,
+		     1, data,
+		     -1);
+
+
+  //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
+  //  while (!err) {
+  //    printf(" attr name: %s, length: %d\n", name, len);
+  //    err = lf_next_attr(obj, &name, &len, &data, &cookie);
+  //  }
+
+  err = ls_release_object(dr, obj);
+  g_assert(!err);
+
+  return TRUE;
+}
+
+
 ls_search_handle_t diamond_circle_search(void) {
   ls_search_handle_t dr;
   int fd;
@@ -132,33 +186,6 @@ ls_search_handle_t diamond_circle_search(void) {
 
   // start search
   ls_start_search(dr);
-
-  // XXX
-  while(1) {
-    ls_obj_handle_t obj;
-    void *data;
-    char *name;
-    void *cookie;
-    int len;
-    err = ls_next_object(dr, &obj, 0);
-    if (err) {
-      break;
-    }
-
-    printf("got object: %p\n", obj);
-
-    printf("calling lf_first_attr with %p %p %p %p %p\n",
-	   obj, &name, &len, &data, &cookie);
-    err = lf_first_attr(obj, &name, &len, &data, &cookie);
-    while (!err) {
-      printf(" attr name: %s, length: %d\n", name, len);
-      err = lf_next_attr(obj, &name, &len, &data, &cookie);
-    }
-
-    err = ls_release_object(dr, obj);
-    g_assert(!err);
-  }
-
 
   // return
   return dr;

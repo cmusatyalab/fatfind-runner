@@ -1127,7 +1127,7 @@
 			      <property name="window_placement">GTK_CORNER_TOP_LEFT</property>
 
 			      <child>
-				<widget class="GtkIconView" id="iconview1">
+				<widget class="GtkIconView" id="searchResults">
 				  <property name="visible">True</property>
 				  <property name="can_focus">True</property>
 				  <property name="selection_mode">GTK_SELECTION_SINGLE</property>

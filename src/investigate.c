@@ -46,10 +46,12 @@ void on_startSearch_clicked (GtkButton *button,
 
     g_debug("searching from %g to %g", r_min, r_max);
 
-    // build model
-    
-    // XXX diamond
+    // diamond
     dr = diamond_circle_search();
+
+    // take the handle, put it into the idle callback to get
+    // the results?
+    g_idle_add(diamond_result_callback, dr);
   }
 }
 

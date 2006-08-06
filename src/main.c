@@ -43,7 +43,7 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
   GtkListStore *s;
   GtkTreeIter iter;
   gchar buf[1024];
-  const gchar *dirname = g_path_get_dirname(file);
+  gchar *dirname = g_path_get_dirname(file);
 
   // get index
   FILE *f = fopen(file, "r");
@@ -52,10 +52,8 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
     exit(1);
   }
 
-  // create the models
+  // create the model
   s = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
-  found_items = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
-
 
   // get all the thumbnails
   while (1) {
@@ -114,6 +112,18 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
 }
 
 
+static void setup_results_store(GtkIconView *g) {
+  GtkTreeIter iter;
+
+  found_items =
+    gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_POINTER);
+
+  gtk_icon_view_set_model(g, GTK_TREE_MODEL(found_items));
+  gtk_icon_view_set_pixbuf_column(g, 0);
+  gtk_icon_view_set_text_column(g, 1);
+}
+
+
 GladeXML *g_xml;
 
 int
@@ -141,6 +151,10 @@ main (int argc, char *argv[])
 
   // init saved searches
   setup_saved_search_store();
+
+  // init results
+  setup_results_store(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
+							 "searchResults")));
 
 
   gtk_widget_show_all(fatfind);
