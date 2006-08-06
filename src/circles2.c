@@ -32,7 +32,7 @@ typedef struct {
 
 
 // static parameters, used from GUI
-static circles_state_t staticState =
+static const circles_state_t staticState =
   {1, 0, 2, 400, 5, 10, 2, 100, 1.0, NULL, NULL};
 
 
