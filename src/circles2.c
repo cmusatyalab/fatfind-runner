@@ -23,17 +23,12 @@ typedef struct {
   int radiusStep;
 
   int cannyThreshold;
-
-  double scale;
-
-  IplImage *scaledImage;
-  IplImage *gray;
 } circles_state_t;
 
 
 // static parameters, used from GUI
 static const circles_state_t staticState =
-  {1, 0, 2, 400, 5, 10, 2, 100, 1.0, NULL, NULL};
+  {1, 0, 2, 400, 5, 10, 2, 100};
 
 
 static void addToMatrix (int *data, int x, int y, int rows, int cols) {
@@ -70,7 +65,8 @@ static void circlePoints(CvMat *img, int cx, int cy, int x, int y)
 }
 
 static void accumulateCircle(circles_state_t *cr,
-			     CvMat *img, int xCenter, int yCenter, int radius)
+			     CvMat *img, int xCenter, int yCenter,
+			     int radius, double scale)
 {
   int x = 0;
   int y = radius;
@@ -93,11 +89,14 @@ static void accumulateCircle(circles_state_t *cr,
 }
 
 static GList *myHoughCircles (circles_state_t *cr,
-			      IplImage *image, GList *clist) {
+			      IplImage *image,
+			      double scale) {
   const int numSlices = (cr->maxRadius - cr->minRadius) / cr->radiusStep;
 
   CvMat **acc;
   int i, j, x, y;
+
+  GList *clist = NULL;
 
   const int w = image->width / cr->dp;
   const int h = image->height / cr->dp;
@@ -139,7 +138,7 @@ static GList *myHoughCircles (circles_state_t *cr,
 	  int radius = cr->minRadius + (cr->radiusStep * i);
 
 	  //printf("drawing circle: (%d,%d,%d)\n", x, y, radius);
-	  accumulateCircle(cr, slice, x, y, radius);
+	  accumulateCircle(cr, slice, x, y, radius, scale);
 	}
       }
     }
@@ -193,9 +192,9 @@ static GList *myHoughCircles (circles_state_t *cr,
 
       //      printf("circle found; r: %d\n", radius);
 
-      c->x = x * cr->dp / cr->scale;
-      c->y = y * cr->dp / cr->scale;
-      c->r = radius * cr->dp / cr->scale;
+      c->x = x * cr->dp / scale;
+      c->y = y * cr->dp / scale;
+      c->r = radius * cr->dp / scale;
       clist = g_list_prepend(clist, c);
 
       // wipe out region in all slices
@@ -222,19 +221,22 @@ static GList *myHoughCircles (circles_state_t *cr,
 }
 
 static GList *computeCircles(circles_state_t *cr,
-			     int pos, IplImage *initialImage, GList *clist) {
-  IplImage* tmpGrayImage = cvCreateImage(cvGetSize(cr->scaledImage), 8, 3);
-  IplImage* scaledGray = cvCreateImage(cvGetSize(cr->scaledImage), 8, 1);
+			     IplImage *initialImage,
+			     IplImage *scaledImage,
+			     IplImage *gray,
+			     double scale) {
+  IplImage* tmpGrayImage = cvCreateImage(cvGetSize(scaledImage), 8, 3);
+  IplImage* scaledGray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
 
   // get a fresh copy of the image, and scale it
-  cvResize(initialImage, cr->scaledImage, CV_INTER_LINEAR);
+  cvResize(initialImage, scaledImage, CV_INTER_LINEAR);
 
   // convert the image to gray (maybe scaled?)
   //cvCvtColor(initialImage, gray, CV_BGR2GRAY);
-  cvCvtColor(cr->scaledImage, cr->gray, CV_BGR2GRAY);
+  cvCvtColor(scaledImage, gray, CV_BGR2GRAY);
 
   // get the circles (note that this modifies the input image with Canny)
-  return myHoughCircles(cr, cr->gray, clist);
+  return myHoughCircles(cr, gray, scale);
 }
 
 
@@ -242,32 +244,35 @@ GList *circlesFromImage2(circles_state_t *cr, IplImage *initialImage) {
    int w = initialImage->width;
    int h = initialImage->height;
    GList *circList;
+   double scale = 1.0;
+   IplImage *scaledImage;
+   IplImage *gray;
 
    // possibly scale down
    if (w > 1024 || h > 768) {
      if (w > h) {
-       cr->scale = 1024.0 / w;
+       scale = 1024.0 / w;
      } else {
-       cr->scale = 768.0 / h;
+       scale = 768.0 / h;
      }
-     w *= cr->scale;
-     h *= cr->scale;
+     w *= scale;
+     h *= scale;
    }
 
    printf("w: %d, h: %d, scale factor: %g\n",
 	  initialImage->width,
 	  initialImage->height,
-	  cr->scale);
+	  scale);
 
    // create where the scaled image will go
-   cr->scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
+   scaledImage = cvCreateImage(cvSize(w, h), 8, 3);
 
    // create the storage for the gray image used by the circle finder
    //gray = cvCreateImage(cvGetSize(initialImage), 8, 1);
-   cr->gray = cvCreateImage(cvGetSize(cr->scaledImage), 8, 1);
+   gray = cvCreateImage(cvGetSize(scaledImage), 8, 1);
 
    // do initial computation
-   circList = computeCircles(cr, -1, initialImage, NULL);
+   circList = computeCircles(cr, initialImage, scaledImage, gray, scale);
 
    // free
    // XXX
@@ -288,9 +293,13 @@ int f_init_circles (int num_arg, char **args,
 		    int bloblen, void *blob_data,
 		    const char *filter_name,
 		    void **filter_args) {
-  // TODO
+  // init state
+  circles_state_t *cr = g_malloc0(sizeof(circles_state_t));
 
-  *filter_args = NULL;
+  // fill in with parameters
+  
+
+  *filter_args = cr;
   return 0;
 }
 
@@ -305,7 +314,7 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
 
 
 int f_fini_circles (void *filter_args) {
-  // TODO
+  g_free(filter_args);
 
   return 0;
 }
