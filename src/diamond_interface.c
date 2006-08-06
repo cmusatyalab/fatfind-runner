@@ -57,7 +57,7 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   int f1, f2;
   int err;
 
-  char buf[1];;
+  char buf[1];
 
   diamond_init();
 
