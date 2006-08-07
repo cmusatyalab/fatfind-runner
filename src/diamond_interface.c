@@ -111,6 +111,8 @@ gboolean diamond_result_callback(gpointer g_data) {
   int h;
   GdkPixbuf *pix, *pix2;
 
+  float p_aspect;
+
   int i;
 
   GList *clist = NULL;
@@ -170,7 +172,20 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
 				 TRUE, 8, w, h, w*4, NULL, NULL);
-  pix2 = gdk_pixbuf_scale_simple(pix, 150, 150, GDK_INTERP_BILINEAR);
+  // draw into thumbnail?
+  p_aspect = (float) w / (float) h;
+  if (p_aspect < 1) {
+    /* then calculate width from height */
+    h = 150;
+    w = h * p_aspect;
+  } else {
+    /* else calculate height from width */
+    w = 150;
+    h = w / p_aspect;
+  }
+  pix2 = gdk_pixbuf_scale_simple(pix, w, h, GDK_INTERP_BILINEAR);
+
+
 
   gtk_list_store_append(found_items, &iter);
   gtk_list_store_set(found_items, &iter,
