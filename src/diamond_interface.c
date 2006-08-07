@@ -107,8 +107,14 @@ gboolean diamond_result_callback(gpointer g_data) {
   void *cookie;
   int len;
   int err;
+  int w;
+  int h;
+  GdkPixbuf *pix, *pix2;
 
   int i;
+
+  GList *clist = NULL;
+  gchar *title;
 
   GtkTreeIter iter;
 
@@ -129,13 +135,6 @@ gboolean diamond_result_callback(gpointer g_data) {
   }
 
   printf("got object: %p\n", obj);
-  err = lf_ref_attr(obj, "Display-Name", &len, &data);
-  g_assert(!err);
-
-  gtk_list_store_append(found_items, &iter);
-  gtk_list_store_set(found_items, &iter,
-		     1, data,
-		     -1);
 
   err = lf_ref_attr(obj, "circle-data", &len, &data);
   g_assert(!err);
@@ -143,16 +142,45 @@ gboolean diamond_result_callback(gpointer g_data) {
   // XXX
   for (i = 0; i < len / sizeof(float); i += 3) {
     float *p = ((float *) data) + i;
-    circle_type c;
+    circle_type *c = g_malloc(sizeof(circle_type));
 
-    c.x = p[0];
-    c.y = p[1];
-    c.r = p[2];
+    c->x = p[0];
+    c->y = p[1];
+    c->r = p[2];
 
-    // add to thumbnails
-    
+    clist = g_list_prepend(clist, c);
   }
 
+  // text
+  title = g_strdup_printf("%d items", g_list_length(clist));
+
+  // thumbnail
+  err = lf_ref_attr(obj, "_cols.int", &len, &data);
+  g_assert(!err);
+  w = *((int *) data);
+
+  err = lf_ref_attr(obj, "_rows.int", &len, &data);
+  g_assert(!err);
+  h = *((int *) data);
+
+  err = lf_ref_attr(obj, "_rgb_image.rgbimage", &len, &data);
+  g_assert(!err);
+
+  printf(" img %dx%d (%d bytes)\n", w, h, len);
+
+  pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
+				 TRUE, 8, w, h, w*4, NULL, NULL);
+  pix2 = gdk_pixbuf_scale_simple(pix, 150, 150, GDK_INTERP_BILINEAR);
+
+  gtk_list_store_append(found_items, &iter);
+  gtk_list_store_set(found_items, &iter,
+		     0, pix2,
+		     1, title,
+		     2, clist,
+		     -1);
+
+  g_object_unref(pix);
+  g_object_unref(pix2);
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
   //  while (!err) {
