@@ -1150,13 +1150,14 @@
 			      <property name="spacing">0</property>
 
 			      <child>
-				<widget class="GtkButton" id="button1">
+				<widget class="GtkButton" id="stopSearch">
 				  <property name="visible">True</property>
 				  <property name="sensitive">False</property>
 				  <property name="can_default">True</property>
 				  <property name="can_focus">True</property>
 				  <property name="relief">GTK_RELIEF_NORMAL</property>
 				  <property name="focus_on_click">True</property>
+				  <signal name="clicked" handler="on_stopSearch_clicked" last_modification_time="Mon, 07 Aug 2006 03:58:08 GMT"/>
 
 				  <child>
 				    <widget class="GtkAlignment" id="alignment24">

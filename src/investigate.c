@@ -13,18 +13,43 @@
 GtkListStore *found_items;
 
 
+static ls_search_handle_t dr;
+static guint search_idle_id;
+
+static void stop_search(void) {
+  if (dr != NULL) {
+    printf("terminating search\n");
+    g_assert(g_source_remove(search_idle_id));
+    ls_terminate_search(dr);
+    dr = NULL;
+  }
+}
+
 
 
 void on_clearSearch_clicked (GtkButton *button,
 			     gpointer   user_data) {
+  // disable stop button
+  GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+  gtk_widget_set_sensitive(stopSearch, FALSE);
+
+  // stop
+  stop_search();
+
   // clear search thumbnails
   gtk_list_store_clear(found_items);
 }
 
+void on_stopSearch_clicked (GtkButton *button,
+			    gpointer user_data) {
+  GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+  gtk_widget_set_sensitive(stopSearch, FALSE);
+
+  stop_search();
+}
+
 void on_startSearch_clicked (GtkButton *button,
 			     gpointer   user_data) {
-  ls_search_handle_t dr;
-
   // get the selected search
   GtkTreeIter s_iter;
   GtkTreeSelection *selection =
@@ -39,6 +64,8 @@ void on_startSearch_clicked (GtkButton *button,
 				      &s_iter)) {
     gdouble r_min;
     gdouble r_max;
+    GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+
 
     g_debug("saved_search_store: %p", model);
     gtk_tree_model_get(model,
@@ -52,7 +79,10 @@ void on_startSearch_clicked (GtkButton *button,
 
     // take the handle, put it into the idle callback to get
     // the results?
-    g_idle_add(diamond_result_callback, dr);
+    search_idle_id = g_idle_add(diamond_result_callback, dr);
+
+    // activate the stop search button
+    gtk_widget_set_sensitive(stopSearch, TRUE);
   }
 }
 

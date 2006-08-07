@@ -62,6 +62,7 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   diamond_init();
 
   diamond_handle = ls_init_search();
+
   err = ls_set_searchlist(diamond_handle, 1, diamond_gid_list.gids);
   g_assert(!err);
 
@@ -148,6 +149,7 @@ gboolean diamond_result_callback(gpointer g_data) {
     c.y = p[1];
     c.r = p[2];
 
+    // add to thumbnails
     
   }
 
