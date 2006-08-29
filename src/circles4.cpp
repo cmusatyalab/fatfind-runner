@@ -18,17 +18,8 @@ GList *circles;   // for gui only, not filter
 
 
 typedef struct {
-  lti::image inputImg;
-  lti::scaleSpacePyramid<lti::image> imgPyramid;
-  lti::image scaledInputImg;
-  std::vector<lti::channel8> edges;
-  lti::channel8 scaledEdges;
-  lti::image result;
-
   int minRadius;
   int maxRadius;
-
-  std::vector<lti::fastEllipseExtraction> fee;
 } circles_state_t;
 
 
@@ -38,7 +29,8 @@ static void free_1_circle(gpointer data, gpointer user_data) {
 }
 
 
-static void do_canny(circles_state_t *ct) {
+static void do_canny(lti::scaleSpacePyramid<lti::image> &imgPyramid,
+		     std::vector<lti::channel8> &edges) {
   // params
   lti::cannyEdges::parameters cannyParam;
   cannyParam.thresholdMax = 0.10;
@@ -47,16 +39,17 @@ static void do_canny(circles_state_t *ct) {
 
   // run
   lti::cannyEdges canny(cannyParam);
-  ct->edges.clear();
-  for (int i = 0; i < ct->imgPyramid.size(); i++) {
-    printf("canny[%d]: %dx%d\n", i, ct->imgPyramid[i].columns(),
-	   ct->imgPyramid[i].rows());
-    ct->edges.push_back(lti::channel8());
-    canny.apply(ct->imgPyramid[i], ct->edges[i]);
+  edges.clear();
+  for (int i = 0; i < imgPyramid.size(); i++) {
+    printf("canny[%d]: %dx%d\n", i, imgPyramid[i].columns(),
+	   imgPyramid[i].rows());
+    edges.push_back(lti::channel8());
+    canny.apply(imgPyramid[i], edges[i]);
   }
 }
 
-static GList *do_fee(circles_state_t *ct) {
+static GList *do_fee(std::vector<lti::fastEllipseExtraction> &fee,
+		     std::vector<lti::channel8> &edges) {
   GList *result = NULL;
 
   // create FEE functor
@@ -64,19 +57,20 @@ static GList *do_fee(circles_state_t *ct) {
   feeParam.maxArcGap = 120;
   feeParam.minLineLen = 3;
 
-  ct->fee.clear();
-  for (unsigned int i = 0; i < ct->edges.size(); i++) {
+  fee.clear();
+  for (unsigned int i = 0; i < edges.size(); i++) {
     lti::fastEllipseExtraction fee2(feeParam);
-    ct->fee.push_back(fee2);
+    fee.push_back(fee2);
 
     // extract some ellipses
-    ct->fee[i].apply(ct->edges[i]);
+    printf("extracting from pyramid %d\n", i);
+    fee[i].apply(edges[i]);
 
     // build list
     std::vector<lti::fastEllipseExtraction::ellipseEntry>
-      &ellipses = ct->fee[i].getEllipseList();
+      &ellipses = fee[i].getEllipseList();
 
-    for(unsigned int j=0; i<ellipses.size(); i++) {
+    for(unsigned int j=0; j<ellipses.size(); j++) {
       circle_type *c = (circle_type *)g_malloc(sizeof(circle_type));
 
       c->x = ellipses[j].x;
@@ -112,18 +106,21 @@ static GList *circlesFromImage2(circles_state_t *ct,
       img[y][x] = p;
     }
   }
-  ct->inputImg = img;
 
   // make pyramid
   lti::scaleSpacePyramid<lti::image>::parameters pyramidParams;
   pyramidParams.factor = 0.5;
-  int levels = (int)log2(MIN(ct->inputImg.rows(), ct->inputImg.columns()));
-  ct->imgPyramid = lti::scaleSpacePyramid<lti::image>(levels, pyramidParams);
-  ct->imgPyramid.generate(ct->inputImg);
+  int levels = (int)log2(MIN(img.rows(), img.columns()));
+  lti::scaleSpacePyramid<lti::image> imgPyramid(levels, pyramidParams);
+  imgPyramid.generate(img);
 
-  // initial run
-  do_canny(ct);
-  return do_fee(ct);
+  // make vectors
+  std::vector<lti::channel8> edges;
+  std::vector<lti::fastEllipseExtraction> fee;
+
+  // run
+  do_canny(imgPyramid, edges);
+  return do_fee(fee, edges);
 }
 
 
