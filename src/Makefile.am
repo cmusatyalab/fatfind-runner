@@ -8,7 +8,7 @@ INCLUDES = \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-DFATFIND_GLADEDIR=\""$(gladedir)"\" \
 	-DFATFIND_FILTERDIR=\""$(filterdir)"\" \
-	@PACKAGE_CFLAGS@
+	@glade_CFLAGS@
 
 bin_PROGRAMS = fatfind
 
@@ -22,6 +22,6 @@ fatfind_SOURCES = \
 	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
 
-fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)
+fatfind_LDADD = @glade_LIBS@ $(INTLLIBS)
 
 fatfind_LDFLAGS = -export-dynamic

@@ -9,11 +9,11 @@
 #include <glade/glade.h>
 #include <stdlib.h>
 
+#include <math.h>
+
 #include "define.h"
 #include "calibrate.h"
 #include "circles4.h"
-
-#include <highgui.h>
 
 
 GdkPixbuf *c_pix;
@@ -255,6 +255,7 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   circlesFromImage(gdk_pixbuf_get_width(c_pix),
 		   gdk_pixbuf_get_height(c_pix),
 		   gdk_pixbuf_get_rowstride(c_pix),
+		   gdk_pixbuf_get_n_channels(c_pix),
 		   gdk_pixbuf_get_pixels(c_pix));
   //    circles = g_list_prepend(circles, c);
 
@@ -292,8 +293,8 @@ static void draw_circles (GtkWidget *d) {
     cairo_rotate(cr, t);
     cairo_scale(cr, a, b);
 
+    cairo_move_to(cr, 1.0, 0.0);
     cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
-    cairo_new_sub_path(cr);
 
     cairo_restore(cr);
 

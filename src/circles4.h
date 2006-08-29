@@ -17,6 +17,7 @@ typedef struct {
 extern "C" {
 #endif
   void circlesFromImage(const int width, const int height, const int stride,
+			const int bytesPerPixel,
 			void *data);
 #ifdef __cplusplus
 }

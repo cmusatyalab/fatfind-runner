@@ -29,9 +29,12 @@ static void stop_search(void) {
 
 void on_clearSearch_clicked (GtkButton *button,
 			     gpointer   user_data) {
-  // disable stop button
+  // buttons
   GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+  GtkWidget *startSearch = glade_xml_get_widget(g_xml, "startSearch");
+
   gtk_widget_set_sensitive(stopSearch, FALSE);
+  gtk_widget_set_sensitive(startSearch, TRUE);
 
   // stop
   stop_search();
@@ -43,7 +46,9 @@ void on_clearSearch_clicked (GtkButton *button,
 void on_stopSearch_clicked (GtkButton *button,
 			    gpointer user_data) {
   GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+  GtkWidget *startSearch = glade_xml_get_widget(g_xml, "startSearch");
   gtk_widget_set_sensitive(stopSearch, FALSE);
+  gtk_widget_set_sensitive(startSearch, TRUE);
 
   stop_search();
 }
@@ -83,6 +88,9 @@ void on_startSearch_clicked (GtkButton *button,
 
     // activate the stop search button
     gtk_widget_set_sensitive(stopSearch, TRUE);
+
+    // deactivate our button
+    gtk_widget_set_sensitive(GTK_WIDGET(button), FALSE);
   }
 }
 

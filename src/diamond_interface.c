@@ -133,6 +133,11 @@ gboolean diamond_result_callback(gpointer g_data) {
     return TRUE;
   } else if (err) {
     // no more results
+    GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
+    GtkWidget *startSearch = glade_xml_get_widget(g_xml, "startSearch");
+    gtk_widget_set_sensitive(stopSearch, FALSE);
+    gtk_widget_set_sensitive(startSearch, TRUE);
+
     ls_abort_search(dr);
     return FALSE;
   }
@@ -210,7 +215,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   g_object_unref(pix);
   g_object_unref(pix2);
-  g_object_unref(pixmap);
+  //  g_object_unref(pixmap);
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
   //  while (!err) {
