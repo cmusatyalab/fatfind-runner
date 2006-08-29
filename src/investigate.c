@@ -75,7 +75,7 @@ void on_startSearch_clicked (GtkButton *button,
     g_debug("searching from %g to %g", r_min, r_max);
 
     // diamond
-    dr = diamond_circle_search(1, 0, 2, 400, r_min, r_max, 2, 100);
+    dr = diamond_circle_search(r_min, r_max);
 
     // take the handle, put it into the idle callback to get
     // the results?

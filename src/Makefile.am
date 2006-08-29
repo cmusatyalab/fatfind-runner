@@ -19,7 +19,7 @@ fatfind_SOURCES = \
 	define.c define.h \
 	investigate.c investigate.h \
 	image.c \
-	circles2.c circles2.h \
+	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
 
 fatfind_LDADD = @PACKAGE_LIBS@ $(INTLLIBS)

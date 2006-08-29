@@ -8,6 +8,7 @@ AM_MAINTAINER_MODE
 AC_ISC_POSIX
 AC_PROG_CC
 AM_PROG_CC_STDC
+AC_PROG_CXX
 AC_HEADER_STDC
 
 pkg_modules="gtk+-2.0 >= 2.8.0 \
@@ -23,12 +24,12 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
 
 
 # XXX circular dependencies
-AC_SUBST(LIBS, "-lpthread -lm -lsearchlet -lfilterexec -lfilter -llog -lodisk -ltools -lhstub -ldctl -ldconfig -llog -lssl")
+AC_SUBST(LIBS, "`lti-config nogtk --libs` -lpthread -lm -lsearchlet -lfilterexec -lfilter -llog -lodisk -ltools -lhstub -ldctl -ldconfig -llog -lssl")
 
 
 # XXX should use pkg-config
 AC_SUBST(LDFLAGS, "-L/opt/diamond/lib -L/usr/local/diamond/lib")
-AC_SUBST(CPPFLAGS, "-I/opt/diamond/include -I/usr/local/diamond/include")
+AC_SUBST(CPPFLAGS, "-I/opt/diamond/include -I/usr/local/diamond/include `lti-config nogtk --cxxflags`")
 
 # XXX should work on more than 1 arch
 AC_SUBST(CFLAGS, "-m32")

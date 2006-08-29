@@ -24,10 +24,12 @@ static gboolean circle_match(circle_type *c) {
   }
 
   // scale by reference
-  r_min *= reference_circle_object->r;
-  r_max *= reference_circle_object->r;
+  r_min *= MIN(reference_circle_object->a,
+	       reference_circle_object->b);
+  r_max *= MAX(reference_circle_object->a,
+	       reference_circle_object->b);
 
-  return ((c->r >= r_min) && (c->r <= r_max));
+  return ((c->a >= r_min) || (c->b >= r_min)) && ((c->a <= r_max) || (c->b <= r_max));
 	  /*
 	  && (c->fuzz >= fuzz - 0.1)
 	  && (c->fuzz <= fuzz + 0.1));
@@ -115,7 +117,7 @@ gboolean on_simulatedSearch_expose_event (GtkWidget *d,
 
       if (circle_match(c)) {
 	float extra = 1.2;
-	float r = c->r;
+	float r = MAX(c->a, c->b);
 	float x = c->x - extra * r;
 	float y = c->y - extra * r;
 
@@ -178,8 +180,10 @@ void on_saveSearchButton_clicked (GtkButton *button,
   }
 
   // scale by reference
-  r_min *= reference_circle_object->r;
-  r_max *= reference_circle_object->r;
+  r_min *= MIN(reference_circle_object->a,
+	       reference_circle_object->b);
+  r_max *= MAX(reference_circle_object->a,
+	       reference_circle_object->b);
 
   g_debug("making new search: %s", save_name);
   gtk_list_store_append(saved_search_store, &iter);

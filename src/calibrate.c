@@ -5,12 +5,13 @@
 #include "fatfind.h"
 
 #include <gtk/gtk.h>
+#include <cairo.h>
 #include <glade/glade.h>
 #include <stdlib.h>
 
 #include "define.h"
 #include "calibrate.h"
-#include "circles2.h"
+#include "circles4.h"
 
 #include <highgui.h>
 
@@ -42,7 +43,7 @@ static void draw_hitmap(void) {
 
     float x = c->x;
     float y = c->y;
-    float r = c->r;
+    float r = MAX(c->a, c->b);
 
     // draw
     x *= scale;
@@ -158,7 +159,7 @@ static void set_reference_circle(guint32 c) {
       (g_list_nth(circles, reference_circle))->data;
 
     float extra = 1.2;
-    float r = circ->r;
+    float r = MAX(circ->a, circ->b);
     float x = circ->x - extra * r;
     float y = circ->y - extra * r;
     int width = gdk_pixbuf_get_width(c_pix);
@@ -244,15 +245,18 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   }
 
 
-  // compute the circles
-  circlesFromImage(cvLoadImage(pix, 1));
-  //    circles = g_list_prepend(circles, c);
-
   c_pix = gdk_pixbuf_new_from_file(pix, &err);
   if (err != NULL) {
     g_critical("error: %s", err->message);
     g_error_free(err);
   }
+
+  // compute the circles
+  circlesFromImage(gdk_pixbuf_get_width(c_pix),
+		   gdk_pixbuf_get_height(c_pix),
+		   gdk_pixbuf_get_rowstride(c_pix),
+		   gdk_pixbuf_get_pixels(c_pix));
+  //    circles = g_list_prepend(circles, c);
 
   g_debug("c_pix: %p", c_pix);
   //g_debug("c_txt: %s", c_txt);
@@ -262,40 +266,40 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 }
 
 static void draw_circles (GtkWidget *d) {
-  GdkGC *gc = gdk_gc_new(d->window);
-
-  GdkColor red = {0, 65535, 0, 0};
-
   GList *l = circles;
 
-  g_debug("scale: %g", scale);
+  cairo_t *cr = gdk_cairo_create(d->window);
 
-  gdk_gc_set_rgb_fg_color(gc, &red);
+  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+
+  g_debug("scale: %g", scale);
+  cairo_scale(cr, scale, scale);
 
   while (l != NULL) {
     circle_type *c = (circle_type *) l->data;
 
     float x = c->x;
     float y = c->y;
-    float r = c->r;
+    float a = c->a;
+    float b = c->b;
+    float t = c->t;
 
     //g_debug("%g %g %g %g", x, y, r, fuzz);
 
     // draw
-    x *= scale;
-    y *= scale;
-    r *= scale;
+    cairo_save(cr);
+    cairo_translate(cr, x, y);
+    cairo_rotate(cr, t);
+    cairo_scale(cr, a, b);
 
-    //g_debug(" %g %g %g %g", x, y, r, fuzz);
+    cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
+    cairo_stroke(cr);
 
-    gdk_draw_arc(d->window, gc, FALSE,
-		 x - r, y - r, 2 * r, 2 * r,
-		 0, 360*64);
-
+    cairo_restore(cr);
     l = l->next;
   }
 
-  g_object_unref(gc);
+  cairo_destroy(cr);
 }
 
 gboolean on_selectedImage_expose_event (GtkWidget *d,

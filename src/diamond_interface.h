@@ -22,10 +22,7 @@ struct collection_t
 };
 
 
-ls_search_handle_t diamond_circle_search (int dp, int minDist,
-					  int blur, int accumulatorThresh,
-					  int minRadius, int maxRadius,
-					  int radiusStep, int cannyThreshold);
+ls_search_handle_t diamond_circle_search (int minRadius, int maxRadius);
 gboolean diamond_result_callback(gpointer data);
 
 

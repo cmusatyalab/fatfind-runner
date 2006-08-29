@@ -110,6 +110,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   int w;
   int h;
   GdkPixbuf *pix, *pix2;
+  GdkPixmap *pixmap;
 
   float p_aspect;
 
@@ -142,13 +143,15 @@ gboolean diamond_result_callback(gpointer g_data) {
   g_assert(!err);
 
   // XXX
-  for (i = 0; i < len / sizeof(float); i += 3) {
+  for (i = 0; i < len / sizeof(float); i += 5) {
     float *p = ((float *) data) + i;
     circle_type *c = g_malloc(sizeof(circle_type));
 
     c->x = p[0];
     c->y = p[1];
-    c->r = p[2];
+    c->a = p[2];
+    c->b = p[3];
+    c->t = p[4];
 
     clist = g_list_prepend(clist, c);
   }
@@ -172,7 +175,6 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
 				 TRUE, 8, w, h, w*4, NULL, NULL);
-  // draw into thumbnail?
   p_aspect = (float) w / (float) h;
   if (p_aspect < 1) {
     /* then calculate width from height */
@@ -185,7 +187,19 @@ gboolean diamond_result_callback(gpointer g_data) {
   }
   pix2 = gdk_pixbuf_scale_simple(pix, w, h, GDK_INTERP_BILINEAR);
 
-
+  // draw into thumbnail?
+  /*
+  {
+    GtkWidget *w = glade_xml_get_widget(g_xml, "fatfind");
+    GdkGC *gc;
+    pixmap = gdk_pixmap_new(w->window, w, h, 8);
+    gc = gdk_gc_new(pixmap);
+    gdk_draw_pixbuf(pixmap, gc, pix2,
+		    0, 0, 0, 0, -1, -1, GDK_RGB_DITHER_NORMAL,
+		    0, 0);
+    g_object_unref(gc);
+  }
+  */
 
   gtk_list_store_append(found_items, &iter);
   gtk_list_store_set(found_items, &iter,
@@ -196,6 +210,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   g_object_unref(pix);
   g_object_unref(pix2);
+  g_object_unref(pixmap);
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
   //  while (!err) {
@@ -210,10 +225,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 }
 
 
-ls_search_handle_t diamond_circle_search(int dp, int minDist,
-					 int blur, int accumulatorThresh,
-					 int minRadius, int maxRadius,
-					 int radiusStep, int cannyThreshold) {
+ls_search_handle_t diamond_circle_search(int minRadius, int maxRadius) {
   ls_search_handle_t dr;
   int fd;
   FILE *f;
@@ -235,17 +247,9 @@ ls_search_handle_t diamond_circle_search(int dp, int minDist,
 	  "FINI_FUNCTION  f_fini_circles\n"
 	  "ARG  %d\n"
 	  "ARG  %d\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
 	  "REQUIRES  RGB # dependencies\n"
 	  "MERIT  50 # some relative cost\n",
-	  dp, minDist, blur, accumulatorThresh,
-	  minRadius, maxRadius, radiusStep,
-	  cannyThreshold);
+	  minRadius, maxRadius);
   fflush(f);
 
   // initialize with generic search

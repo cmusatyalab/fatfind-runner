@@ -4,7 +4,7 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
-#include "circles2.h"
+#include "circles4.h"
 
 extern GladeXML *g_xml;
 extern GdkPixbuf *c_pix;
