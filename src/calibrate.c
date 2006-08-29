@@ -273,8 +273,6 @@ static void draw_circles (GtkWidget *d) {
   cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
 
   g_debug("scale: %g", scale);
-  cairo_scale(cr, scale, scale);
-
   while (l != NULL) {
     circle_type *c = (circle_type *) l->data;
 
@@ -284,21 +282,26 @@ static void draw_circles (GtkWidget *d) {
     float b = c->b;
     float t = c->t;
 
-    //g_debug("%g %g %g %g", x, y, r, fuzz);
+    //    g_debug("drawing %g %g %g %g %g", x, y, a, b, t);
 
     // draw
     cairo_save(cr);
+    cairo_scale(cr, scale, scale);
+
     cairo_translate(cr, x, y);
     cairo_rotate(cr, t);
     cairo_scale(cr, a, b);
 
     cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
-    cairo_stroke(cr);
+    cairo_new_sub_path(cr);
 
     cairo_restore(cr);
+
     l = l->next;
   }
 
+  cairo_set_line_width(cr, 1.0);
+  cairo_stroke(cr);
   cairo_destroy(cr);
 }
 

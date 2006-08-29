@@ -49,7 +49,8 @@ static void do_canny(lti::scaleSpacePyramid<lti::image> &imgPyramid,
 }
 
 static GList *do_fee(std::vector<lti::fastEllipseExtraction> &fee,
-		     std::vector<lti::channel8> &edges) {
+		     std::vector<lti::channel8> &edges,
+		     circles_state_t *ct) {
   GList *result = NULL;
 
   // create FEE functor
@@ -59,6 +60,8 @@ static GList *do_fee(std::vector<lti::fastEllipseExtraction> &fee,
 
   fee.clear();
   for (unsigned int i = 0; i < edges.size(); i++) {
+    double pyrScale = pow(2, i);
+
     lti::fastEllipseExtraction fee2(feeParam);
     fee.push_back(fee2);
 
@@ -71,12 +74,35 @@ static GList *do_fee(std::vector<lti::fastEllipseExtraction> &fee,
       &ellipses = fee[i].getEllipseList();
 
     for(unsigned int j=0; j<ellipses.size(); j++) {
+      float a = ellipses[j].a * pyrScale;
+      float b = ellipses[j].b * pyrScale;
+
+      // determine if it should go in by radius
+      if (!(ct->minRadius < 0 || a >= ct->minRadius || b >= ct->minRadius)) {
+	continue;
+      }
+      if (!(ct->maxRadius < 0 || a <= ct->maxRadius || b <= ct->maxRadius)) {
+	continue;
+      }
+
+      // compute eccentricity
+      if (b > a) {
+	float c = a;
+	a = b;
+	b = c;
+      }
+      float e = sqrt(1 - ((b*b) / (a*a)));
+      if (e > 0.5) {
+	continue;
+      }
+
+      // all set
       circle_type *c = (circle_type *)g_malloc(sizeof(circle_type));
 
-      c->x = ellipses[j].x;
-      c->y = ellipses[j].y;
-      c->a = ellipses[j].a;
-      c->b = ellipses[j].b;
+      c->x = ellipses[j].x * pyrScale;
+      c->y = ellipses[j].y * pyrScale;
+      c->a = ellipses[j].a * pyrScale;
+      c->b = ellipses[j].b * pyrScale;
       c->t = ellipses[j].t;
 
       result = g_list_prepend(result, c);
@@ -84,16 +110,15 @@ static GList *do_fee(std::vector<lti::fastEllipseExtraction> &fee,
       // print ellipse data
       printf(" ellipse[%i]: center=(%.0f,%.0f) semiaxis=(%.0f,%.0f) "
 	     "angle=%.1f coverage=%.1f%% \n",
-	     j, ellipses[j].x, ellipses[j].y,
-	     ellipses[j].a, ellipses[j].b,
-	     ellipses[j].t*180/3.14, ellipses[j].coverage*100);
+	     j, c->x, c->y, c->a, c->b, c->t*180/M_PI,
+	     ellipses[j].coverage*100);
     }
   }
 
   return result;
 }
 
-static circles_state_t staticState;
+static circles_state_t staticState = {-1, -1};
 static GList *circlesFromImage2(circles_state_t *ct,
 				const int width, const int height,
 				const int stride, void *data) {
@@ -120,7 +145,7 @@ static GList *circlesFromImage2(circles_state_t *ct,
 
   // run
   do_canny(imgPyramid, edges);
-  return do_fee(fee, edges);
+  return do_fee(fee, edges, ct);
 }
 
 
