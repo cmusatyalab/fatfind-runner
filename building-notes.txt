@@ -1,1 +1,5 @@
+# for building circles2:
 gcc -L$HOME/opencv-install/lib -I$HOME/diamond-install/include -L$HOME/diamond-install/lib -I/usr/include/libxml2 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/usr/include/opencv    -O2 -g -m32 -Wall  -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/circles2.c   -lxml2 -lz -lm -lglib-2.0 -lcxcore -lcv -lhighgui -lcvaux   -lcxcore -Wl,-Bdynamic -lstdc++ -lpthread
+
+# for building circles4:
+g++ -I$HOME/diamond-install/include -L$HOME/diamond-install/lib -I/opt/diamond/include -L/opt/diamond/lib `pkg-config glib-2.0 --cflags` `lti-config nogtk --cxxflags` -O2 -g -m32 -Wall  -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/circles4.cpp   -Wl,-Bdynamic -lstdc++ -lpthread `lti-config nogtk --libs` `pkg-config glib-2.0 --libs`

@@ -1,7 +1,3 @@
-#include <gtk/gtk.h>
-#include <gdk/gdkkeysyms.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
-
 #include "ltiRGBPixel.h"
 #include "ltiScaling.h"
 #include "ltiDraw.h"                  // drawing tool
