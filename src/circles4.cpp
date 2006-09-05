@@ -104,6 +104,8 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
 	b = c;
       }
       float e = sqrt(1 - ((b*b) / (a*a)));
+
+      // XXX magic number
       if (e > 0.4) {
 	continue;
       }

@@ -162,7 +162,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   }
 
   // text
-  title = g_strdup_printf("%d items", g_list_length(clist));
+  title = g_strdup_printf("%d circles", g_list_length(clist));
 
   // thumbnail
   err = lf_ref_attr(obj, "_cols.int", &len, &data);
