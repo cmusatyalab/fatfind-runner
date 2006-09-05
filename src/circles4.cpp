@@ -19,9 +19,26 @@ typedef struct {
 } circles_state_t;
 
 
-// helper function for glist
+// helper functions for glist
 static void free_1_circle(gpointer data, gpointer user_data) {
   g_free((circle_type *) data);
+}
+
+static gint circle_radius_compare(gconstpointer a,
+				  gconstpointer b) {
+  const circle_type *c1 = (circle_type *) a;
+  const circle_type *c2 = (circle_type *) b;
+
+  // assume a and b are positive
+  double c1_radius = c1->a + c1->b;
+  double c2_radius = c2->a + c2->b;
+  if (c1_radius < c2_radius) {
+    return 1;
+  } else if (c2_radius < c1_radius) {
+    return -1;
+  } else {
+    return 0;
+  }
 }
 
 
@@ -87,7 +104,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
 	b = c;
       }
       float e = sqrt(1 - ((b*b) / (a*a)));
-      if (e > 0.5) {
+      if (e > 0.4) {
 	continue;
       }
 
@@ -146,6 +163,48 @@ static GList *circlesFromImage2(circles_state_t *ct,
     delete edges[i];
     edges[i] = NULL;
   }
+
+  // overlap supression
+  printf("overlap supression ");
+  fflush(stdout);
+
+  result = g_list_sort(result, circle_radius_compare);  // sort
+
+  GList *iter = result;
+  while (iter != NULL) {
+    // find other centers within this circle (assume no eccentricity)
+    circle_type *c1 = (circle_type *) iter->data;
+    double c1_radius = (c1->a + c1->b) / 2.0;
+
+    GList *iter2 = g_list_next(iter);
+    while (iter2 != NULL) {
+      circle_type *c2 = (circle_type *) iter2->data;
+      double c2_radius = (c2->a + c2->b) / 2.0;
+
+      // is c2 within c1?
+      double xd = c2->x - c1->x;
+      double yd = c2->y - c1->y;
+      double dist = sqrt((xd * xd) + (yd * yd));
+
+      // maybe delete?
+      GList *next = g_list_next(iter2);
+      //      printf(" dist: %g, c1_radius: %g, c2_radius: %g\n",
+      //	     dist, c1_radius, c2_radius);
+
+      // XXX fudge
+      if ((dist + c2_radius) < (c1_radius + 100)) {
+	printf("x");
+	fflush(stdout);
+	result = g_list_delete_link(result, iter2);
+      }
+
+      iter2 = next;
+    }
+    printf(".");
+    fflush(stdout);
+    iter = g_list_next(iter);
+  }
+  printf("\n");
 
   return result;
 }
