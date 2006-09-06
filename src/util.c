@@ -3,10 +3,17 @@
 #endif
 
 #include "fatfind.h"
+#include "util.h"
 
 #include <cairo.h>
 #include <math.h>
 
+
+void draw_circles_into_widget (GtkWidget *d, GList *l, double scale) {
+  cairo_t *cr = gdk_cairo_create(d->window);
+  draw_circles(cr, l, scale);
+  cairo_destroy(cr);
+}
 
 
 void draw_circles(cairo_t *cr, GList *l, double scale) {

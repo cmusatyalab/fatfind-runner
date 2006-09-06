@@ -3,8 +3,6 @@
 
 #include <gtk/gtk.h>
 
-void draw_calibrate_offscreen_items (gint width, gint height);
-
 void on_calibrationImages_selection_changed (GtkIconView *view,
 					     gpointer user_data);
 

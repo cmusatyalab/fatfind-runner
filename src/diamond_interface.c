@@ -107,10 +107,10 @@ gboolean diamond_result_callback(gpointer g_data) {
   void *cookie;
   int len;
   int err;
-  int w;
-  int h;
+  int w, origW;
+  int h, origH;
   int stride;
-  GdkPixbuf *pix, *pix2, *pix_tmp;
+  GdkPixbuf *pix, *pix2, *pix3;
 
   float p_aspect;
 
@@ -125,7 +125,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   cairo_t *cr;
   cairo_surface_t *surface;
-  double scale;
+  double scale, prescale;
 
   // get handle
   ls_search_handle_t dr = (ls_search_handle_t) g_data;
@@ -167,16 +167,21 @@ gboolean diamond_result_callback(gpointer g_data) {
   }
 
   // text
-  title = g_strdup_printf("%d circles", g_list_length(clist));
+  len = g_list_length(clist);
+  if (len == 1) {
+    title = g_strdup_printf("%d circle", len);
+  } else {
+    title = g_strdup_printf("%d circles", len);
+  }
 
   // thumbnail
   err = lf_ref_attr(obj, "_cols.int", &len, &data);
   g_assert(!err);
-  w = *((int *) data);
+  origW = w = *((int *) data);
 
   err = lf_ref_attr(obj, "_rows.int", &len, &data);
   g_assert(!err);
-  h = *((int *) data);
+  origH = h = *((int *) data);
 
   err = lf_ref_attr(obj, "_rgb_image.rgbimage", &len, &data);
   g_assert(!err);
@@ -235,15 +240,28 @@ gboolean diamond_result_callback(gpointer g_data) {
     }
   }
 
+
+  // draw into scaled-down image
+  w *= 4;
+  h *= 4;
+  pix3 = gdk_pixbuf_scale_simple(pix,
+				 w, h,
+				 GDK_INTERP_BILINEAR);
+  prescale = (double) w / (double) origW;
+
+  // store
   gtk_list_store_append(found_items, &iter);
   gtk_list_store_set(found_items, &iter,
 		     0, pix2,
 		     1, title,
 		     2, clist,
+		     3, pix3,
+		     4, prescale,
 		     -1);
 
   g_object_unref(pix);
   g_object_unref(pix2);
+  g_object_unref(pix3);
 
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);

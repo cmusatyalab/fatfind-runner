@@ -65,8 +65,8 @@ static void draw_hitmap(void) {
   g_object_unref(gc);
 }
 
-void draw_calibrate_offscreen_items(gint allocation_width,
-				    gint allocation_height) {
+static void draw_calibrate_offscreen_items(gint allocation_width,
+					   gint allocation_height) {
   // clear old scaled pix
   if (c_pix_scaled != NULL) {
     g_object_unref(c_pix_scaled);
@@ -276,12 +276,6 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   gtk_widget_queue_draw(w);
 }
 
-static void draw_circles_into_widget (GtkWidget *d) {
-  cairo_t *cr = gdk_cairo_create(d->window);
-  draw_circles(cr, circles, scale);
-  cairo_destroy(cr);
-}
-
 gboolean on_selectedImage_expose_event (GtkWidget *d,
 					GdkEventExpose *event,
 					gpointer user_data) {
@@ -304,7 +298,7 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
 
     // draw circles
     if (show_circles) {
-      draw_circles_into_widget(d);
+      draw_circles_into_widget(d, circles, scale);
     }
   }
   return TRUE;
