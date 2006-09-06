@@ -5,6 +5,7 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "fatfind.h"
 #include "investigate.h"
@@ -20,10 +21,19 @@ static GdkPixmap *hitmap;
 static gdouble prescale;
 static gfloat scale;
 
+static gboolean show_circles;
+
 static GList *circles_list;
 
 static ls_search_handle_t dr;
 static guint search_idle_id;
+
+static gboolean is_adding;
+static gint x_add_start;
+static gint y_add_start;
+static gint x_add_current;
+static gint y_add_current;
+
 
 static void stop_search(void) {
   if (dr != NULL) {
@@ -39,9 +49,19 @@ static void draw_hitmap(void) {
 
   GdkColor col = {0, 0, 0, 0};
 
-  GList *l = circles;
+  GList *l = circles_list;
 
-    while (l != NULL) {
+  GdkColor black = {-1, 0, 0, 0};
+
+  int w, h;
+
+  gdk_drawable_get_size(hitmap, &w, &h);
+
+  // clear hitmap
+  gdk_gc_set_foreground(gc, &black);
+  gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
+
+  while (l != NULL) {
     gdk_gc_set_foreground(gc, &col);
     circle_type *c = (circle_type *) l->data;
 
@@ -66,6 +86,13 @@ static void draw_hitmap(void) {
   }
 
   g_object_unref(gc);
+}
+
+static void set_show_circles(gboolean state) {
+  if (show_circles != state) {
+    show_circles = state;
+    gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedResult"));
+  }
 }
 
 static void foreach_select_investigation(GtkIconView *icon_view,
@@ -104,7 +131,6 @@ static draw_investigate_offscreen_items(gint allocation_width,
   // if something selected?
   if (i_pix) {
     GdkGC *gc;
-    GdkColor black = {-1, 0, 0, 0};
 
     float p_aspect =
       (float) gdk_pixbuf_get_width(i_pix) /
@@ -134,13 +160,6 @@ static draw_investigate_offscreen_items(gint allocation_width,
 
 
     hitmap = gdk_pixmap_new(NULL, w, h, 32);
-    gc = gdk_gc_new(hitmap);
-
-    // clear hitmap
-    gdk_gc_set_foreground(gc, &black);
-    gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
-    g_object_unref(gc);
-
     draw_hitmap();
   }
 }
@@ -225,31 +244,110 @@ gboolean on_selectedResult_expose_event (GtkWidget *d,
 		    -1, -1,
 		    GDK_RGB_DITHER_NORMAL,
 		    0, 0);
+    if (show_circles) {
+      draw_circles_into_widget(d, circles_list, scale);
+    }
 
-    draw_circles_into_widget(d, circles_list, scale);
+    if (is_adding) {
+      cairo_t *cr = gdk_cairo_create(d->window);
+
+      double xd = x_add_current - x_add_start;
+      double yd = y_add_current - y_add_start;
+      double r = sqrt((xd * xd) + (yd * yd));
+
+      g_debug("dynamic circle (%d,%d,%g)\n",
+	      x_add_start, y_add_start, r);
+
+      cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+      cairo_arc(cr, x_add_start, y_add_start,
+		r, 0.0, 2 * M_PI);
+
+      cairo_set_line_width(cr, 1.0);
+      cairo_stroke(cr);
+      cairo_destroy(cr);
+    }
   }
 
   return TRUE;
 }
 
+
 gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 					       GdkEventButton *event,
 					       gpointer        user_data) {
-  g_debug("button press");
-  return TRUE;
+  gint x, y;
+  gint w, h;
+  GdkImage *hit_data;
+  guint32 hit = -1;
+
+  // if not selected, do nothing
+  if (i_pix == NULL) {
+    return FALSE;
+  }
+
+  if (event->type == GDK_BUTTON_PRESS && event->button == 1) {
+    g_debug("x: %g, y: %g", event->x, event->y);
+    set_show_circles(TRUE);
+
+    if (event->state & GDK_SHIFT_MASK) {
+      // delete
+      gdk_drawable_get_size(hitmap, &w, &h);
+      hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
+
+      // check to see if hits hitmap
+      if (event->x < w && event->y < h) {
+	hit = gdk_image_get_pixel(hit_data, event->x, event->y);
+	g_debug("hit: %d", hit);
+      }
+      g_object_unref(hit_data);
+
+      // if so, then delete selected item and update reference
+      if (hit != -1) {
+	GList *item = g_list_nth(circles_list, hit);
+	g_free(item->data);
+	circles_list = g_list_delete_link(circles_list, item);
+	draw_hitmap();
+	gtk_widget_queue_draw(widget);
+      }
+      return TRUE;
+    } else {
+      // start add
+      is_adding = TRUE;
+      x_add_current = x_add_start = event->x;
+      y_add_current = y_add_start = event->y;
+
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 						 GdkEventButton *event,
 						 gpointer        user_data) {
-  g_debug("button release");
-  return TRUE;
+  if (is_adding) {
+    g_debug("end adding");
+    is_adding = FALSE;
+
+    // TODO add
+
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 gboolean on_selectedResult_motion_notify_event (GtkWidget      *widget,
 						GdkEventMotion *event,
 						gpointer        user_data) {
-  g_debug("motion");
+  if (is_adding) {
+    // draw dynamic circle
+    x_add_current = event->x;
+    y_add_current = event->y;
+
+    gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedResult"));
+  }
+
   return TRUE;
 }
 
@@ -271,4 +369,18 @@ void on_searchResults_selection_changed (GtkIconView *view,
   w = glade_xml_get_widget(g_xml, "selectedResult");
   draw_investigate_offscreen_items(w->allocation.width,
 				   w->allocation.height);
+}
+
+gboolean on_selectedResult_enter_notify_event (GtkWidget        *widget,
+					       GdkEventCrossing *event,
+					       gpointer          user_data) {
+  set_show_circles(TRUE);
+  return TRUE;
+}
+
+gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
+					       GdkEventCrossing *event,
+					       gpointer          user_data) {
+  set_show_circles(FALSE);
+  return TRUE;
 }

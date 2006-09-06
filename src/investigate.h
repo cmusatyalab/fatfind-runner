@@ -35,5 +35,12 @@ gboolean on_selectedResult_configure_event (GtkWidget         *widget,
 void on_searchResults_selection_changed (GtkIconView *view,
 					 gpointer user_data);
 
+gboolean on_selectedResult_enter_notify_event (GtkWidget        *widget,
+					       GdkEventCrossing *event,
+					       gpointer          user_data);
+
+gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
+					       GdkEventCrossing *event,
+					       gpointer          user_data);
 
 #endif
