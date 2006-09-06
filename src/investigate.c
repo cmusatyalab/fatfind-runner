@@ -19,7 +19,7 @@ static GdkPixbuf *i_pix_scaled;
 
 static GdkPixmap *hitmap;
 static gdouble prescale;
-static gfloat scale;
+static gfloat display_scale;
 
 static gboolean show_circles;
 
@@ -27,6 +27,8 @@ static GList *circles_list;
 
 static ls_search_handle_t dr;
 static guint search_idle_id;
+
+static GtkTreePath *current_result_path;
 
 static gboolean is_adding;
 static gint x_add_start;
@@ -70,9 +72,9 @@ static void draw_hitmap(void) {
     float r = MAX(c->a, c->b);
 
     // draw
-    x *= scale;
-    y *= scale;
-    r *= scale;
+    x *= display_scale;
+    y *= display_scale;
+    r *= display_scale;
 
     gdk_draw_arc(hitmap, gc, TRUE,
 		 x - r, y - r, 2 * r, 2 * r,
@@ -103,6 +105,12 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   GtkTreeIter iter;
   GtkTreeModel *m = gtk_icon_view_get_model(icon_view);
   GtkWidget *w;
+
+  // save path
+  if (current_result_path != NULL) {
+    gtk_tree_path_free(current_result_path);
+  }
+  current_result_path = gtk_tree_path_copy(path);
 
   gtk_tree_model_get_iter(m, &iter, path);
   gtk_tree_model_get(m, &iter,
@@ -143,16 +151,16 @@ static draw_investigate_offscreen_items(gint allocation_width,
     if (p_aspect < w_aspect) {
       /* then calculate width from height */
       w = h * p_aspect;
-      scale = (float) allocation_height
+      display_scale = (float) allocation_height
 	/ (float) gdk_pixbuf_get_height(i_pix);
     } else {
       /* else calculate height from width */
       h = w / p_aspect;
-      scale = (float) allocation_width
+      display_scale = (float) allocation_width
 	/ (float) gdk_pixbuf_get_width(i_pix);
     }
 
-    scale *= prescale;
+    display_scale *= prescale;
 
     i_pix_scaled = gdk_pixbuf_scale_simple(i_pix,
 					   w, h,
@@ -245,7 +253,7 @@ gboolean on_selectedResult_expose_event (GtkWidget *d,
 		    GDK_RGB_DITHER_NORMAL,
 		    0, 0);
     if (show_circles) {
-      draw_circles_into_widget(d, circles_list, scale);
+      draw_circles_into_widget(d, circles_list, display_scale);
     }
 
     if (is_adding) {
@@ -303,9 +311,49 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 
       // if so, then delete selected item and update reference
       if (hit != -1) {
+	GdkPixbuf *pix2;
+	gchar *title;
+
+	double scale;
+
+	// get the model
+	GError *err = NULL;
+	GtkTreeIter iter;
+	GtkListStore *store = GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
+												    "searchResults"))));
+
+	// get the circle and free it
 	GList *item = g_list_nth(circles_list, hit);
 	g_free(item->data);
 	circles_list = g_list_delete_link(circles_list, item);
+
+	// get things
+	gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, current_result_path);
+	gtk_tree_model_get(GTK_TREE_MODEL(store), &iter,
+			   0, &pix2,
+			   1, &title,
+			   -1);
+	g_free(title);
+	title = make_thumbnail_title(g_list_length(circles_list));
+
+	w = gdk_pixbuf_get_width(pix2);
+	h = gdk_pixbuf_get_height(pix2);
+	scale = (double) w / (double) gdk_pixbuf_get_width(i_pix);
+	g_object_unref(pix2);
+
+	// make new thumbnail
+	pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
+	draw_into_thumbnail(pix2, i_pix, circles_list, scale,
+			    scale * prescale, w, h);
+
+	// add it back
+	gtk_list_store_set(store, &iter,
+			   0, pix2,
+			   1, title,
+			   2, circles_list,
+			   -1);
+
+	g_object_unref(pix2);
 	draw_hitmap();
 	gtk_widget_queue_draw(widget);
       }
@@ -326,11 +374,69 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 						 GdkEventButton *event,
 						 gpointer        user_data) {
   if (is_adding) {
+    // get the model
+    GError *err = NULL;
+    GtkTreeIter iter;
+    GtkListStore *store = GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
+												    "searchResults"))));
+
+    circle_type *c = g_malloc(sizeof(circle_type));
+    double xd = event->x - x_add_start;
+    double yd = event->y - y_add_start;
+    double r = sqrt((xd * xd) + (yd * yd));
+
+    gint w = gdk_pixbuf_get_width(i_pix);
+    gint h = gdk_pixbuf_get_height(i_pix);
+
+    double scale;
+
+    gchar *title;
+
+    GList *clist;
+    GdkPixbuf *pix2;
+
+
     g_debug("end adding");
     is_adding = FALSE;
 
-    // TODO add
+    // the circle
+    c->x = (double) x_add_start / display_scale;
+    c->y = (double) y_add_start / display_scale;
+    c->t = 0;
+    c->a = (double) r / display_scale;
+    c->b = (double) r / display_scale;
 
+    circles_list = g_list_prepend(circles_list, c);
+
+    // get
+    gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, current_result_path);
+    gtk_tree_model_get(GTK_TREE_MODEL(store), &iter,
+		       0, &pix2,
+		       1, &title,
+		       -1);
+    g_free(title);
+    title = make_thumbnail_title(g_list_length(circles_list));
+
+    // draw
+    w = gdk_pixbuf_get_width(pix2);
+    h = gdk_pixbuf_get_height(pix2);
+    scale = (double) w / (double) gdk_pixbuf_get_width(i_pix);
+    g_object_unref(pix2);
+
+    pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
+    draw_into_thumbnail(pix2, i_pix, circles_list, scale,
+			scale * prescale, w, h);
+
+    // update
+    gtk_list_store_set(store, &iter,
+		       0, pix2,
+		       1, title,
+		       2, circles_list,
+		       -1);
+
+    g_object_unref(pix2);
+    draw_hitmap();
+    gtk_widget_queue_draw(widget);
     return TRUE;
   }
 

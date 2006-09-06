@@ -2,6 +2,7 @@
 
 #include "diamond_interface.h"
 #include "fatfind.h"
+#include "util.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -109,22 +110,15 @@ gboolean diamond_result_callback(gpointer g_data) {
   int err;
   int w, origW;
   int h, origH;
-  int stride;
   GdkPixbuf *pix, *pix2, *pix3;
 
-  float p_aspect;
-
   int i;
-  int x, y;
-  guchar *pixels;
 
   GList *clist = NULL;
   gchar *title;
 
   GtkTreeIter iter;
 
-  cairo_t *cr;
-  cairo_surface_t *surface;
   double scale, prescale;
 
   // get handle
@@ -168,11 +162,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   // text
   len = g_list_length(clist);
-  if (len == 1) {
-    title = g_strdup_printf("%d circle", len);
-  } else {
-    title = g_strdup_printf("%d circles", len);
-  }
+  title = make_thumbnail_title(len);
 
   // thumbnail
   err = lf_ref_attr(obj, "_cols.int", &len, &data);
@@ -190,56 +180,11 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
 				 TRUE, 8, w, h, w*4, NULL, NULL);
-  p_aspect = (float) w / (float) h;
-  if (p_aspect < 1) {
-    /* then calculate width from height */
-    scale = 150.0 / (double) h;
-    h = 150;
-    w = h * p_aspect;
-
-  } else {
-    /* else calculate height from width */
-    scale = 150.0 / (double) w;
-    w = 150;
-    h = w / p_aspect;
-  }
+  compute_thumbnail_scale(&scale, &w, &h);
 
   // draw into thumbnail
   pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
-  pixels = gdk_pixbuf_get_pixels(pix2);
-  stride = gdk_pixbuf_get_rowstride(pix2);
-  surface = cairo_image_surface_create_for_data(pixels,
-						CAIRO_FORMAT_ARGB32,
-						w, h, stride);
-  cr = cairo_create(surface);
-  cairo_save(cr);
-  cairo_scale(cr, scale, scale);
-  gdk_cairo_set_source_pixbuf(cr, pix, 0, 0);
-  cairo_paint(cr);
-  cairo_restore(cr);
-
-  draw_circles(cr, clist, scale);
-  cairo_destroy(cr);
-  cairo_surface_destroy(surface);
-
-  // swap around the data
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      if (G_BYTE_ORDER == G_LITTLE_ENDIAN) {
-	guchar *p = pixels + (stride * y) + (4 * x);
-
-	guchar r = p[2];
-	guchar b = p[0];
-
-	p[0] = r;
-	p[2] = b;
-      } else if (G_BYTE_ORDER == G_BIG_ENDIAN) {
-	guint *p = (guint *) (pixels + (stride * y) + (4 * x));
-	*p = GUINT32_SWAP_LE_BE(*p);
-      }
-    }
-  }
-
+  draw_into_thumbnail(pix2, pix, clist, scale, scale, w, h);
 
   // draw into scaled-down image
   w *= 4;
