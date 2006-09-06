@@ -43,4 +43,7 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
 					       GdkEventCrossing *event,
 					       gpointer          user_data);
 
+void on_generateHistogram_clicked (GtkButton *button,
+				   gpointer user_data);
+
 #endif

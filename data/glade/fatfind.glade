@@ -1136,7 +1136,7 @@
 				    <widget class="GtkIconView" id="searchResults">
 				      <property name="visible">True</property>
 				      <property name="can_focus">True</property>
-				      <property name="selection_mode">GTK_SELECTION_SINGLE</property>
+				      <property name="selection_mode">GTK_SELECTION_BROWSE</property>
 				      <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
 				      <property name="reorderable">False</property>
 				      <signal name="selection_changed" handler="on_searchResults_selection_changed" last_modification_time="Wed, 06 Sep 2006 07:00:32 GMT"/>
@@ -1239,7 +1239,7 @@
 				      <property name="can_focus">True</property>
 				      <property name="relief">GTK_RELIEF_NORMAL</property>
 				      <property name="focus_on_click">True</property>
-				      <signal name="clicked" handler="on_generateHistogram_pressed" last_modification_time="Wed, 06 Sep 2006 06:51:28 GMT"/>
+				      <signal name="clicked" handler="on_generateHistogram_clicked" last_modification_time="Wed, 06 Sep 2006 16:25:56 GMT"/>
 
 				      <child>
 					<widget class="GtkAlignment" id="alignment27">
@@ -1458,10 +1458,12 @@
 </widget>
 
 <widget class="GtkWindow" id="histogramWindow">
-  <property name="title" translatable="yes">Histogram</property>
+  <property name="title" translatable="yes">Histogram Report</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">False</property>
+  <property name="default_width">400</property>
+  <property name="default_height">550</property>
   <property name="resizable">True</property>
   <property name="destroy_with_parent">False</property>
   <property name="decorated">True</property>
@@ -1471,7 +1473,7 @@
   <property name="gravity">GDK_GRAVITY_NORTH_WEST</property>
   <property name="focus_on_map">True</property>
   <property name="urgency_hint">False</property>
-  <signal name="destroy" handler="gtk_widget_hide" last_modification_time="Wed, 06 Sep 2006 11:40:30 GMT"/>
+  <signal name="delete_event" handler="gtk_widget_hide" last_modification_time="Wed, 06 Sep 2006 16:54:32 GMT"/>
 
   <child>
     <widget class="GtkScrolledWindow" id="scrolledwindow12">

@@ -490,3 +490,46 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
   set_show_circles(FALSE);
   return TRUE;
 }
+
+void on_generateHistogram_clicked (GtkButton *button,
+				   gpointer user_data) {
+  GtkWidget *w = glade_xml_get_widget(g_xml, "histogramWindow");
+  GtkIconView *view = GTK_ICON_VIEW(glade_xml_get_widget(g_xml, "searchResults"));
+  GtkTreeModel *m = gtk_icon_view_get_model(view);
+
+  GtkTreeIter iter;
+  gboolean valid;
+
+  gint row_count = 0;
+
+  gtk_widget_show_all(w);
+
+  // populate
+  /* Get the first iter in the list */
+  valid = gtk_tree_model_get_iter_first (m, &iter);
+
+  while (valid) {
+    /* Walk through the list, reading each row */
+    GList *c_list;
+
+    /* Make sure you terminate calls to gtk_tree_model_get()
+     * with a '-1' value
+     */
+    gtk_tree_model_get (m, &iter,
+			2, &c_list,
+			-1);
+
+    /* Do something with the data */
+    g_print ("Item %d has %d circles\n", row_count, g_list_length(c_list));
+
+    row_count++;
+    valid = gtk_tree_model_iter_next (m, &iter);
+  }
+
+
+  // print histogram info
+  printf("Histogram\n\n");
+  printf("Items found: %d\n", row_count);
+
+  printf("\n\n");
+}
