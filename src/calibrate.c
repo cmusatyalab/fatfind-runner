@@ -174,6 +174,9 @@ static void set_reference_circle(guint32 c) {
     int xsize = 2 * extra * r;
     int ysize = 2 * extra * r;
 
+    int scaledX = 150;
+    int scaledY = 150;
+
     if (x < 0) {
       x = 0;
     }
@@ -187,14 +190,20 @@ static void set_reference_circle(guint32 c) {
       ysize = height - y;
     }
 
+    if (xsize > ysize) {
+      scaledY *= ((double) ysize / (double) xsize);
+    } else if (ysize > xsize) {
+      scaledX *= ((double) xsize / (double) ysize);
+    }
+
     sub = gdk_pixbuf_new_subpixbuf(c_pix,
 				   x,
 				   y,
 				   xsize,
 				   ysize);
     sub_scaled = gdk_pixbuf_scale_simple(sub,
-					 150,
-					 150,
+					 scaledX,
+					 scaledY,
 					 GDK_INTERP_BILINEAR);
     gtk_image_set_from_pixbuf(im, sub_scaled);
     gtk_image_set_from_pixbuf(im2, sub_scaled);
@@ -328,7 +337,7 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
   gint x, y;
   gint w, h;
   GdkImage *hit_data;
-  guint32 hit;
+  guint32 hit = -1;
 
   // if not selected, do nothing
   if (c_pix == NULL) {
@@ -351,7 +360,9 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
 
 
     // check to see if hits hitmap
-    hit = gdk_image_get_pixel(hit_data, event->x, event->y);
+    if (event->x < w && event->y < h) {
+      hit = gdk_image_get_pixel(hit_data, event->x, event->y);
+    }
     g_object_unref(hit_data);
 
     // if so, then illuminate selected item and update reference
