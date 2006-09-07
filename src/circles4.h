@@ -11,6 +11,7 @@ typedef struct {
   float a;
   float b;
   float t;
+  gboolean in_result;
 } circle_type;
 
 #ifdef __cplusplus

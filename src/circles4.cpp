@@ -88,13 +88,13 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
     for(unsigned int j=0; j<ellipses.size(); j++) {
       float a = ellipses[j].a * pyrScale;
       float b = ellipses[j].b * pyrScale;
+      gboolean in_result = TRUE;
 
       // determine if it should go in by radius
       if (!(ct->minRadius < 0 || a >= ct->minRadius || b >= ct->minRadius)) {
-	continue;
-      }
-      if (!(ct->maxRadius < 0 || a <= ct->maxRadius || b <= ct->maxRadius)) {
-	continue;
+	in_result = FALSE;
+      } else if (!(ct->maxRadius < 0 || a <= ct->maxRadius || b <= ct->maxRadius)) {
+	in_result = FALSE;
       }
 
       // compute eccentricity
@@ -118,6 +118,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
       c->a = ellipses[j].a * pyrScale;
       c->b = ellipses[j].b * pyrScale;
       c->t = ellipses[j].t;
+      c->in_result = in_result;
 
       result = g_list_prepend(result, c);
 
@@ -254,6 +255,7 @@ extern "C" {
     GList *clist;
     circles_state_t *cr = (circles_state_t *) filter_args;
     int num_circles;
+    int num_circles_in_result = 0;
 
     // for attributes from diamond
     size_t len;
@@ -282,27 +284,27 @@ extern "C" {
     data = NULL;
 
     // add the list of circles to the cache and the object
-    // XXX
+    // XXX !
     num_circles = g_list_length(clist);
     if (num_circles > 0) {
       GList *l = clist;
       int i = 0;
-      data = (unsigned char *) g_malloc(sizeof(float) * 5 * num_circles);
+      data = (unsigned char *) g_malloc(sizeof(circle_type) * num_circles);
 
-      // pack in
+      // pack in and count
       while (l != NULL) {
-	float *p = ((float *) data) + i;
+	circle_type *p = ((circle_type *) data) + i;
 	circle_type *c = (circle_type *) l->data;
-	p[0] = c->x;
-	p[1] = c->y;
-	p[2] = c->a;
-	p[3] = c->b;
-	p[4] = c->t;
+	*p = *c;
 
-	i += 5;
+	if (c->in_result) {
+	  num_circles_in_result++;
+	}
+
+	i++;
 	l = g_list_next(l);
       }
-      lf_write_attr(ohandle, "circle-data", sizeof(float) * 5 * num_circles, data);
+      lf_write_attr(ohandle, "circle-data", sizeof(circle_type) * num_circles, data);
     }
 
     // free others
@@ -313,7 +315,7 @@ extern "C" {
     data = NULL;
 
     // return number of circles
-    return num_circles;
+    return num_circles_in_result;
   }
 
 

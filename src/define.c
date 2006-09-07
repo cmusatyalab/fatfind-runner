@@ -169,7 +169,7 @@ void on_saveSearchButton_clicked (GtkButton *button,
 				  gpointer   user_data) {
   GtkTreeIter iter;
 
-  gchar *save_name =
+  const gchar *save_name =
     gtk_entry_get_text(GTK_ENTRY(glade_xml_get_widget(g_xml, "searchName")));
 
   gdouble r_min = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));

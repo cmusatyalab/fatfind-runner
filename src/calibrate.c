@@ -328,7 +328,6 @@ void on_calibrationImages_selection_changed (GtkIconView *view,
 gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
 					      GdkEventButton *event,
 					      gpointer        user_data) {
-  gint x, y;
   gint w, h;
   GdkImage *hit_data;
   guint32 hit = -1;
@@ -342,22 +341,8 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
     g_debug("x: %g, y: %g", event->x, event->y);
     set_show_circles(TRUE);
 
-    gdk_drawable_get_size(hitmap, &w, &h);
-    hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
-
-    //for (y = 0; y < h; y++) {
-    //  for (x = 0; x < w; x++) {
-    //	printf("%4d", gdk_image_get_pixel(hit_data, x, y));
-    //      }
-    //      printf("\n");
-    //    }
-
-
-    // check to see if hits hitmap
-    if (event->x < w && event->y < h) {
-      hit = gdk_image_get_pixel(hit_data, event->x, event->y);
-    }
-    g_object_unref(hit_data);
+    // hit?
+    hit = get_circle_at_point(hitmap, event->x, event->y);
 
     // if so, then illuminate selected item and update reference
     if (hit != -1) {

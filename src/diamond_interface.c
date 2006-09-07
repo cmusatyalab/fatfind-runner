@@ -147,22 +147,17 @@ gboolean diamond_result_callback(gpointer g_data) {
   g_assert(!err);
 
   // XXX
-  for (i = 0; i < len / sizeof(float); i += 5) {
-    float *p = ((float *) data) + i;
+  for (i = 0; i < len / sizeof(circle_type); i++) {
+    circle_type *p = ((circle_type *) data) + i;
     circle_type *c = g_malloc(sizeof(circle_type));
 
-    c->x = p[0];
-    c->y = p[1];
-    c->a = p[2];
-    c->b = p[3];
-    c->t = p[4];
+    *c = *p;
 
     clist = g_list_prepend(clist, c);
   }
 
   // text
-  len = g_list_length(clist);
-  title = make_thumbnail_title(len);
+  title = make_thumbnail_title(clist);
 
   // thumbnail
   err = lf_ref_attr(obj, "_cols.int", &len, &data);

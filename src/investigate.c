@@ -285,7 +285,6 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 					       gpointer        user_data) {
   gint x, y;
   gint w, h;
-  GdkImage *hit_data;
   guint32 hit = -1;
 
   // if not selected, do nothing
@@ -299,15 +298,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 
     if (event->state & GDK_SHIFT_MASK) {
       // delete
-      gdk_drawable_get_size(hitmap, &w, &h);
-      hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
-
-      // check to see if hits hitmap
-      if (event->x < w && event->y < h) {
-	hit = gdk_image_get_pixel(hit_data, event->x, event->y);
-	g_debug("hit: %d", hit);
-      }
-      g_object_unref(hit_data);
+      hit = get_circle_at_point(hitmap, event->x, event->y);
 
       // if so, then delete selected item and update reference
       if (hit != -1) {
@@ -334,7 +325,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 			   1, &title,
 			   -1);
 	g_free(title);
-	title = make_thumbnail_title(g_list_length(circles_list));
+	title = make_thumbnail_title(circles_list);
 
 	w = gdk_pixbuf_get_width(pix2);
 	h = gdk_pixbuf_get_height(pix2);
@@ -380,15 +371,12 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
     GtkListStore *store = GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
 												    "searchResults"))));
 
+    GdkPixbuf *pix2;
+
     circle_type *c;
     double xd = event->x - x_add_start;
     double yd = event->y - y_add_start;
     double r = sqrt((xd * xd) + (yd * yd));
-
-    if (r < 1) {
-      // too small
-      return TRUE;
-    }
 
     gint w = gdk_pixbuf_get_width(i_pix);
     gint h = gdk_pixbuf_get_height(i_pix);
@@ -397,22 +385,27 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     gchar *title;
 
-    GList *clist;
-    GdkPixbuf *pix2;
-
-
     g_debug("end adding");
     is_adding = FALSE;
 
-    // the circle
-    c = g_malloc(sizeof(circle_type));
-    c->x = (double) x_add_start / display_scale;
-    c->y = (double) y_add_start / display_scale;
-    c->t = 0;
-    c->a = (double) r / display_scale;
-    c->b = (double) r / display_scale;
+    if (r < 1) {
+      // too small, this toggles the exclusion filter
+      int hit = get_circle_at_point(hitmap, event->x, event->y);
+      if (hit != -1) {
+	c = (circle_type *) (g_list_nth(circles_list, hit)->data);
+	c->in_result = !c->in_result;
+      }
+    } else {
+      // make a new circle
+      c = g_malloc(sizeof(circle_type));
+      c->x = (double) x_add_start / display_scale;
+      c->y = (double) y_add_start / display_scale;
+      c->t = 0;
+      c->a = (double) r / display_scale;
+      c->b = (double) r / display_scale;
 
-    circles_list = g_list_prepend(circles_list, c);
+      circles_list = g_list_prepend(circles_list, c);
+    }
 
     // get
     gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, current_result_path);
@@ -421,7 +414,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 		       1, &title,
 		       -1);
     g_free(title);
-    title = make_thumbnail_title(g_list_length(circles_list));
+    title = make_thumbnail_title(circles_list);
 
     // draw
     w = gdk_pixbuf_get_width(pix2);
@@ -441,6 +434,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 		       -1);
 
     g_object_unref(pix2);
+
     draw_hitmap();
     gtk_widget_queue_draw(widget);
     return TRUE;

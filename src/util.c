@@ -17,7 +17,7 @@ void draw_circles_into_widget (GtkWidget *d, GList *l, double scale) {
 
 
 void draw_circles(cairo_t *cr, GList *l, double scale) {
-  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+  cairo_set_line_width(cr, 1.0);
 
   while (l != NULL) {
     circle_type *c = (circle_type *) l->data;
@@ -41,30 +41,25 @@ void draw_circles(cairo_t *cr, GList *l, double scale) {
     cairo_move_to(cr, 1.0, 0.0);
     cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
 
-    // XXX
-    /*
-    cairo_save(cr);
-    cairo_clip_preserve(cr);
-    cairo_identity_matrix(cr);
-    cairo_scale(cr, scale, scale);
-    cairo_translate(cr, x, y);
-    cairo_scale(cr, MAX(a, b), MAX(a, b));
-
-    cairo_move_to(cr, 1.0, 1.0);
-    cairo_line_to(cr, -1.0, -1.0);
-    cairo_move_to(cr, -1.0, 1.0);
-    cairo_line_to(cr, 1.0, -1.0);
-
     cairo_restore(cr);
-    */
 
-    cairo_restore(cr);
+    if (!c->in_result) {
+      // dash
+      double dash = 5.0;
+      cairo_set_dash(cr, &dash, 1, 0.0);
+      cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+      cairo_stroke(cr);
+    } else {
+      // show fill, no dash
+      cairo_set_dash(cr, NULL, 0, 0.0);
+      cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+      cairo_stroke_preserve(cr);
+      cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 0.2);
+      cairo_fill(cr);
+    }
 
     l = l->next;
   }
-
-  cairo_set_line_width(cr, 1.0);
-  cairo_stroke(cr);
 }
 
 
@@ -109,8 +104,17 @@ void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
   }
 }
 
-gchar *make_thumbnail_title(int len) {
+gchar *make_thumbnail_title(GList *c) {
   gchar *title;
+
+  int len = 0;
+  while (c != NULL) {
+    if (((circle_type *)(c->data))->in_result) {
+      len++;
+    }
+    c = g_list_next(c);
+  }
+
   if (len == 1) {
     title = g_strdup_printf("%d circle", len);
   } else {
@@ -133,4 +137,23 @@ void compute_thumbnail_scale(double *scale, gint *w, gint *h) {
     *w = 150;
     *h = *w / p_aspect;
   }
+}
+
+int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y) {
+  GdkImage *hit_data;
+  int hit = -1;
+  int w, h;
+
+  gdk_drawable_get_size(hitmap, &w, &h);
+  hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
+  g_debug("get_circle_at_point: x=%d, w=%d, y=%d, h=%d", x, w, y, h);
+
+  // check to see if hits hitmap
+  if ((x < w) && (y < h)) {
+    hit = gdk_image_get_pixel(hit_data, x, y);
+    g_debug("hit: %d", hit);
+  }
+  g_object_unref(hit_data);
+
+  return hit;
 }
