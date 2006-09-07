@@ -188,6 +188,13 @@ void on_clearSearch_clicked (GtkButton *button,
 
   // clear search thumbnails
   gtk_list_store_clear(found_items);
+
+  // clear result
+  if (i_pix != NULL) {
+    g_object_unref(i_pix);
+    i_pix = NULL;
+  }
+  gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedResult"));
 }
 
 void on_stopSearch_clicked (GtkButton *button,
@@ -446,6 +453,22 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 gboolean on_selectedResult_motion_notify_event (GtkWidget      *widget,
 						GdkEventMotion *event,
 						gpointer        user_data) {
+  // update rulers
+  GtkRuler *v = GTK_RULER(glade_xml_get_widget(g_xml, "resultVRuler"));
+  GtkRuler *h = GTK_RULER(glade_xml_get_widget(g_xml, "resultHRuler"));
+
+  GValue hPos = {0,};
+  GValue vPos = {0,};
+
+  g_value_init(&hPos, G_TYPE_DOUBLE);
+  g_value_set_double(&hPos, event->x);
+  g_object_set_property(G_OBJECT(h), "position", &hPos);
+
+  g_value_init(&vPos, G_TYPE_DOUBLE);
+  g_value_set_double(&vPos, event->y);
+  g_object_set_property(G_OBJECT(v), "position", &vPos);
+
+
   if (is_adding) {
     // draw dynamic circle
     x_add_current = event->x;
