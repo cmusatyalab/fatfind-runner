@@ -380,10 +380,15 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
     GtkListStore *store = GTK_LIST_STORE(gtk_icon_view_get_model(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
 												    "searchResults"))));
 
-    circle_type *c = g_malloc(sizeof(circle_type));
+    circle_type *c;
     double xd = event->x - x_add_start;
     double yd = event->y - y_add_start;
     double r = sqrt((xd * xd) + (yd * yd));
+
+    if (r < 1) {
+      // too small
+      return TRUE;
+    }
 
     gint w = gdk_pixbuf_get_width(i_pix);
     gint h = gdk_pixbuf_get_height(i_pix);
@@ -400,6 +405,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
     is_adding = FALSE;
 
     // the circle
+    c = g_malloc(sizeof(circle_type));
     c->x = (double) x_add_start / display_scale;
     c->y = (double) y_add_start / display_scale;
     c->t = 0;

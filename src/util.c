@@ -41,6 +41,23 @@ void draw_circles(cairo_t *cr, GList *l, double scale) {
     cairo_move_to(cr, 1.0, 0.0);
     cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
 
+    // XXX
+    /*
+    cairo_save(cr);
+    cairo_clip_preserve(cr);
+    cairo_identity_matrix(cr);
+    cairo_scale(cr, scale, scale);
+    cairo_translate(cr, x, y);
+    cairo_scale(cr, MAX(a, b), MAX(a, b));
+
+    cairo_move_to(cr, 1.0, 1.0);
+    cairo_line_to(cr, -1.0, -1.0);
+    cairo_move_to(cr, -1.0, 1.0);
+    cairo_line_to(cr, 1.0, -1.0);
+
+    cairo_restore(cr);
+    */
+
     cairo_restore(cr);
 
     l = l->next;
