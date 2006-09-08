@@ -19,7 +19,7 @@ static GdkPixbuf *i_pix_scaled;
 
 static GdkPixmap *hitmap;
 static gdouble prescale;
-static gfloat display_scale;
+static gdouble display_scale = 1.0;
 
 static gboolean show_circles;
 
@@ -95,6 +95,22 @@ static void set_show_circles(gboolean state) {
     show_circles = state;
     gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedResult"));
   }
+}
+
+static void set_rulers_upper(gdouble width, gdouble height) {
+  GtkRuler *v = GTK_RULER(glade_xml_get_widget(g_xml, "resultVRuler"));
+  GtkRuler *h = GTK_RULER(glade_xml_get_widget(g_xml, "resultHRuler"));
+
+  GValue hMax = {0,};
+  GValue vMax = {0,};
+
+  g_value_init(&hMax, G_TYPE_DOUBLE);
+  g_value_set_double(&hMax, width);
+  g_object_set_property(G_OBJECT(h), "upper", &hMax);
+
+  g_value_init(&vMax, G_TYPE_DOUBLE);
+  g_value_set_double(&vMax, height);
+  g_object_set_property(G_OBJECT(v), "upper", &vMax);
 }
 
 static void foreach_select_investigation(GtkIconView *icon_view,
@@ -461,11 +477,11 @@ gboolean on_selectedResult_motion_notify_event (GtkWidget      *widget,
   GValue vPos = {0,};
 
   g_value_init(&hPos, G_TYPE_DOUBLE);
-  g_value_set_double(&hPos, event->x);
+  g_value_set_double(&hPos, event->x / display_scale);
   g_object_set_property(G_OBJECT(h), "position", &hPos);
 
   g_value_init(&vPos, G_TYPE_DOUBLE);
-  g_value_set_double(&vPos, event->y);
+  g_value_set_double(&vPos, event->y / display_scale);
   g_object_set_property(G_OBJECT(v), "position", &vPos);
 
 
@@ -484,6 +500,7 @@ gboolean on_selectedResult_configure_event (GtkWidget         *widget,
 					    GdkEventConfigure *event,
 					    gpointer          user_data) {
   draw_investigate_offscreen_items(event->width, event->height);
+  set_rulers_upper(event->width / display_scale, event->height / display_scale);
   return TRUE;
 }
 
@@ -498,6 +515,10 @@ void on_searchResults_selection_changed (GtkIconView *view,
   w = glade_xml_get_widget(g_xml, "selectedResult");
   draw_investigate_offscreen_items(w->allocation.width,
 				   w->allocation.height);
+
+  // update rulers
+  set_rulers_upper(w->allocation.width / display_scale,
+		   w->allocation.height / display_scale);
 }
 
 gboolean on_selectedResult_enter_notify_event (GtkWidget        *widget,
