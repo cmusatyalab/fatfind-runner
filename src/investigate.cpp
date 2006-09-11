@@ -12,6 +12,9 @@
 #include "util.h"
 #include "diamond_interface.h"
 
+#include "ltiSparseHistogram.h"
+
+
 GtkListStore *found_items;
 
 static GdkPixbuf *i_pix;
@@ -77,10 +80,12 @@ static void draw_hitmap(void) {
     r *= display_scale;
 
     gdk_draw_arc(hitmap, gc, TRUE,
-		 x - r, y - r, 2 * r, 2 * r,
+		 (int) (x - r), (int) (y - r),
+		 (int) (2 * r), (int) (2 * r),
 		 0, 360*64);
     gdk_draw_arc(hitmap, gc, FALSE,
-		 x - r, y - r, 2 * r, 2 * r,
+		 (int) (x - r), (int) (y - r),
+		 (int) (2 * r), (int) (2 * r),
 		 0, 360*64);
 
     l = l->next;
@@ -140,8 +145,8 @@ static void foreach_select_investigation(GtkIconView *icon_view,
 }
 
 
-static draw_investigate_offscreen_items(gint allocation_width,
-					gint allocation_height) {
+static void draw_investigate_offscreen_items(gint allocation_width,
+					     gint allocation_height) {
   // clear old scaled pix
   if (i_pix_scaled != NULL) {
     g_object_unref(i_pix_scaled);
@@ -166,12 +171,12 @@ static draw_investigate_offscreen_items(gint allocation_width,
     /* is window wider than pixbuf? */
     if (p_aspect < w_aspect) {
       /* then calculate width from height */
-      w = h * p_aspect;
+      w = (int) (h * p_aspect);
       display_scale = (float) allocation_height
 	/ (float) gdk_pixbuf_get_height(i_pix);
     } else {
       /* else calculate height from width */
-      h = w / p_aspect;
+      h = (int) (w / p_aspect);
       display_scale = (float) allocation_width
 	/ (float) gdk_pixbuf_get_width(i_pix);
     }
@@ -250,7 +255,7 @@ void on_startSearch_clicked (GtkButton *button,
     g_debug("searching from %g to %g", r_min, r_max);
 
     // diamond
-    dr = diamond_circle_search(r_min, r_max);
+    dr = diamond_circle_search((int) r_min, (int) r_max);
 
     // take the handle, put it into the idle callback to get
     // the results?
@@ -321,7 +326,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 
     if (event->state & GDK_SHIFT_MASK) {
       // delete
-      hit = get_circle_at_point(hitmap, event->x, event->y);
+      hit = get_circle_at_point(hitmap, (int) event->x, (int) event->y);
 
       // if so, then delete selected item and update reference
       if (hit != -1) {
@@ -375,8 +380,8 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
     } else {
       // start add
       is_adding = TRUE;
-      x_add_current = x_add_start = event->x;
-      y_add_current = y_add_start = event->y;
+      x_add_current = x_add_start = (int) event->x;
+      y_add_current = y_add_start = (int) event->y;
 
       return TRUE;
     }
@@ -413,14 +418,14 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     if (r < 1) {
       // too small, this toggles the exclusion filter
-      int hit = get_circle_at_point(hitmap, event->x, event->y);
+      int hit = get_circle_at_point(hitmap, (int) event->x, (int) event->y);
       if (hit != -1) {
 	c = (circle_type *) (g_list_nth(circles_list, hit)->data);
 	c->in_result = !c->in_result;
       }
     } else {
       // make a new circle
-      c = g_malloc(sizeof(circle_type));
+      c = (circle_type *) g_malloc(sizeof(circle_type));
       c->x = (double) x_add_start / display_scale;
       c->y = (double) y_add_start / display_scale;
       c->t = 0;
@@ -487,8 +492,8 @@ gboolean on_selectedResult_motion_notify_event (GtkWidget      *widget,
 
   if (is_adding) {
     // draw dynamic circle
-    x_add_current = event->x;
-    y_add_current = event->y;
+    x_add_current = (int) event->x;
+    y_add_current = (int) event->y;
 
     gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedResult"));
   }

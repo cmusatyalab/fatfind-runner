@@ -22,8 +22,14 @@ struct collection_t
 };
 
 
-ls_search_handle_t diamond_circle_search (int minRadius, int maxRadius);
-gboolean diamond_result_callback(gpointer data);
+#ifdef __cplusplus
+extern "C" {
+#endif
+  ls_search_handle_t diamond_circle_search (int minRadius, int maxRadius);
+  gboolean diamond_result_callback(gpointer data);
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

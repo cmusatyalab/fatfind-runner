@@ -17,7 +17,7 @@ fatfind_SOURCES = \
 	callbacks.c callbacks.h \
 	calibrate.c calibrate.h \
 	define.c define.h \
-	investigate.c investigate.h \
+	investigate.cpp investigate.h \
 	util.c util.h \
 	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
