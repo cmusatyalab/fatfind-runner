@@ -12,7 +12,7 @@
 #include "util.h"
 #include "diamond_interface.h"
 
-#include "ltiSparseHistogram.h"
+#include "ltiHistogram.h"
 
 
 GtkListStore *found_items;
@@ -543,42 +543,150 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
 void on_generateHistogram_clicked (GtkButton *button,
 				   gpointer user_data) {
   GtkWidget *w = glade_xml_get_widget(g_xml, "histogramWindow");
+  GtkTextView *text_view = GTK_TEXT_VIEW(glade_xml_get_widget(g_xml, "histogram"));
+  GtkTextBuffer *text = gtk_text_view_get_buffer(text_view);
   GtkIconView *view = GTK_ICON_VIEW(glade_xml_get_widget(g_xml, "searchResults"));
   GtkTreeModel *m = gtk_icon_view_get_model(view);
+  GtkTextIter text_iter;
+
+  gchar *tmp_str;
 
   GtkTreeIter iter;
   gboolean valid;
+
+  PangoFontDescription *font_desc;
 
   gint row_count = 0;
 
   gtk_widget_show_all(w);
 
+  std::vector<double> radii;
+
+  double minR = HUGE_VAL;
+  double maxR = 0.0;
+
+  // clear text
+  gtk_text_buffer_set_text(text, "", -1);
+
+  // set font
+  font_desc = pango_font_description_from_string ("Monospace");
+  gtk_widget_modify_font (GTK_WIDGET(text_view), font_desc);
+  pango_font_description_free(font_desc);
+
   // populate
-  /* Get the first iter in the list */
   valid = gtk_tree_model_get_iter_first (m, &iter);
 
-  while (valid) {
-    /* Walk through the list, reading each row */
-    GList *c_list;
+  // for selected?
+  if (i_pix) {
+    GList *c_list = circles_list;
 
-    /* Make sure you terminate calls to gtk_tree_model_get()
-     * with a '-1' value
-     */
+    // do something
+    while(c_list != NULL) {
+      circle_type *c = (circle_type *) c_list->data;
+      double r = (c->a + c->b) / 2.0;
+      radii.push_back(r);
+      minR = MIN(r, minR);
+      maxR = MAX(r, maxR);
+
+      c_list = g_list_next(c_list);
+    }
+
+    if (maxR == minR) {
+      maxR += 10.0;
+    }
+
+    // print histogram info
+    lti::histogram1D hist(30);
+    int total = 0;
+    for (int i = 0; i < radii.size(); i++) {
+      int cell = (int) ((radii[i] - minR) / (maxR - minR) * hist.getLastCell());
+      total++;
+      hist.put(cell);
+    }
+
+    gtk_text_buffer_get_iter_at_offset(text, &text_iter, -1);
+
+    tmp_str = g_strdup_printf("Histogram for selected image\n\n");
+    gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+    g_free(tmp_str);
+
+
+    double width = (maxR - minR) / (hist.getLastCell() + 1);
+    for (int i = hist.getFirstCell(); i <= hist.getLastCell(); i++) {
+      double low = minR + (width * i);
+      double high = minR + (width * (i + 1));
+
+      tmp_str = g_strdup_printf(" (%#g -- %#g): %5g\n", low, high, hist.at(i));
+      gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+      g_free(tmp_str);
+    }
+
+    tmp_str = g_strdup_printf("\n Total circles: %d\n", total);
+    gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+    g_free(tmp_str);
+
+    gtk_text_buffer_insert(text, &text_iter, "\n\n\n", -1);
+  }
+
+  // for rest
+  minR = HUGE_VAL;
+  maxR = 0;
+
+  while (valid) {
+    // Walk through the list, reading each row
+    GList *c_list;
     gtk_tree_model_get (m, &iter,
 			2, &c_list,
 			-1);
 
-    /* Do something with the data */
-    g_print ("Item %d has %d circles\n", row_count, g_list_length(c_list));
+    // do something
+    while(c_list != NULL) {
+      circle_type *c = (circle_type *) c_list->data;
+      double r = (c->a + c->b) / 2.0;
+      radii.push_back(r);
+      minR = MIN(r, minR);
+      maxR = MAX(r, maxR);
+
+      c_list = g_list_next(c_list);
+    }
 
     row_count++;
     valid = gtk_tree_model_iter_next (m, &iter);
   }
 
+  if (maxR == minR) {
+    maxR += 10.0;
+  }
 
   // print histogram info
-  printf("Histogram\n\n");
-  printf("Items found: %d\n", row_count);
+  lti::histogram1D hist(30);
+  int total = 0;
+  for (int i = 0; i < radii.size(); i++) {
+    int cell = (int) ((radii[i] - minR) / (maxR - minR) * hist.getLastCell());
+    total++;
+    hist.put(cell);
+  }
+
+  gtk_text_buffer_get_iter_at_offset(text, &text_iter, -1);
+
+  tmp_str = g_strdup_printf("Histogram for all results\n\n");
+  gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+  g_free(tmp_str);
+
+
+  double width = (maxR - minR) / (hist.getLastCell() + 1);
+  //  printf("minR: %g, maxR: %g, width: %g\n", minR, maxR, width);
+  for (int i = hist.getFirstCell(); i <= hist.getLastCell(); i++) {
+    double low = minR + (width * i);
+    double high = minR + (width * (i + 1));
+
+    tmp_str = g_strdup_printf(" (%#g -- %#g): %5g\n", low, high, hist.at(i));
+    gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+    g_free(tmp_str);
+  }
+  tmp_str = g_strdup_printf("\n Total circles: %d\n", total);
+  gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+  g_free(tmp_str);
 
   printf("\n\n");
 }
