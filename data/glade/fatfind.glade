@@ -1585,7 +1585,6 @@
 </widget>
 
 <widget class="GtkAboutDialog" id="aboutdialog1">
-  <property name="visible">True</property>
   <property name="destroy_with_parent">False</property>
   <property name="name" translatable="yes">FatFind</property>
   <property name="copyright" translatable="yes">Copyright © 2006 Carnegie Mellon University</property>
