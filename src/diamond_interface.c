@@ -1,6 +1,5 @@
 /*
- * This file is part of FatFind,
- * a Diamond-based system for adipocyte exploration.
+ * FatFind: A Diamond application for adipocyte image exploration
  *
  * Copyright (c) 2006 Carnegie Mellon University. All rights reserved.
  * Additional copyrights may be listed below.
