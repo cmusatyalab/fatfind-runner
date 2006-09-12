@@ -55,6 +55,28 @@
 	      </child>
 	    </widget>
 	  </child>
+
+	  <child>
+	    <widget class="GtkMenuItem" id="help1">
+	      <property name="visible">True</property>
+	      <property name="label" translatable="yes">_Help</property>
+	      <property name="use_underline">True</property>
+
+	      <child>
+		<widget class="GtkMenu" id="help1_menu">
+
+		  <child>
+		    <widget class="GtkImageMenuItem" id="about1">
+		      <property name="visible">True</property>
+		      <property name="label">gtk-about</property>
+		      <property name="use_stock">True</property>
+		      <signal name="activate" handler="on_about1_activate" last_modification_time="Tue, 12 Sep 2006 17:20:47 GMT"/>
+		    </widget>
+		  </child>
+		</widget>
+	      </child>
+	    </widget>
+	  </child>
 	</widget>
 	<packing>
 	  <property name="padding">0</property>
@@ -1560,6 +1582,20 @@
       </child>
     </widget>
   </child>
+</widget>
+
+<widget class="GtkAboutDialog" id="aboutdialog1">
+  <property name="visible">True</property>
+  <property name="destroy_with_parent">False</property>
+  <property name="name" translatable="yes">FatFind</property>
+  <property name="copyright" translatable="yes">Copyright © 2006 Carnegie Mellon University</property>
+  <property name="comments" translatable="yes">A Diamond-based system for adipocyte exploration.</property>
+  <property name="license" translatable="yes">This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution in the file named LICENSE.</property>
+  <property name="wrap_license">True</property>
+  <property name="website">http://diamond.cs.cmu.edu/</property>
+  <property name="website_label" translatable="yes">Website</property>
+  <property name="authors">Adam Goode &lt;agoode@andrew.cmu.edu&gt;</property>
+  <property name="translator_credits" translatable="yes" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
 </widget>
 
 </glade-interface>

@@ -5,6 +5,7 @@
   <name>FatFind</name>
   <program_name>fatfind</program_name>
   <gnome_support>FALSE</gnome_support>
+  <gettext_support>FALSE</gettext_support>
   <output_main_file>FALSE</output_main_file>
   <output_support_files>FALSE</output_support_files>
   <output_build_files>FALSE</output_build_files>
