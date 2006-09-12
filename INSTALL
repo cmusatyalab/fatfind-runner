@@ -18,9 +18,18 @@ Prerequisites
 FatFind currently depends on a few external libraries.
 These are:
 
- * ltilib
- * Diamond
- * SnapFind
+ * GTK2 >= 2.8
+ * libglade2 >= 2.5.1
+ * ltilib (CVS)
+ * Diamond (CVS)
+ * SnapFind >= 1.1
+
+
+GTK+ and libglade should be available on any modern Linux system.
+Make sure you install the development packages for your system.
+FatFind requires at least version 2.8 of GTK+ and version 2.5.1
+of libglade.
+
 
 
 ltilib is a image processing and utility library, developed at
