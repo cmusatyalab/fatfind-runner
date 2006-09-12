@@ -92,7 +92,9 @@ Once all prerequisites are installed, it's time to build FatFind.
 
  3. make -f Makefile.filters
 
- 4. make install
+ 4. cp [snapfind_build_location]/src/target/lib/fil_rgb.so data/filter
+
+ 5. make install
 
 If you have any problems during any step, your prerequisites may not
 have been installed correctly.
