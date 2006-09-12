@@ -240,7 +240,6 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 				       GtkTreePath *path,
 				       gpointer data) {
   gchar *pix;
-  gchar *txt;
 
   GError *err = NULL;
 
@@ -253,10 +252,7 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   gtk_tree_model_get_iter(m, &iter, path);
   gtk_tree_model_get(m, &iter,
 		     1, &pix,
-		     2, &txt,
 		     -1);
-  g_debug("pix: %s, txt: %s", pix, txt);
-
   if (c_pix != NULL) {
     g_object_unref(c_pix);
   }

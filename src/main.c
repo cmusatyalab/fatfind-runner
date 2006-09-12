@@ -62,13 +62,12 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
   }
 
   // create the model
-  s = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
+  s = gtk_list_store_new(2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
 
   // get all the thumbnails
   while (1) {
     GError *err = NULL;
-    gchar *tmp, *tmp2;
-    gchar *filename, *filename2;
+    gchar *filename;
     GdkPixbuf *pix;
 
     int result;
@@ -80,11 +79,7 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
       perror("bad result");
     }
 
-    tmp = g_strdup_printf("%s.JPG", buf);
-    tmp2 = g_strdup_printf("%s.txt", buf);
-
-    filename = g_build_filename(dirname, tmp, NULL);
-    filename2 = g_build_filename(dirname, tmp2, NULL);
+    filename = g_build_filename(dirname, buf, NULL);
 
     pix = gdk_pixbuf_new_from_file_at_size(filename,
 					   150,
@@ -95,20 +90,15 @@ static void setup_thumbnails(GtkIconView *g, gchar *file) {
       g_error_free(err);
     }
 
-    g_free(tmp);
-    g_free(tmp2);
-
     gtk_list_store_append(s, &iter);
     gtk_list_store_set(s, &iter,
 		       0, pix,
 		       1, filename,
-		       2, filename2,
 		       -1);
 
 
     g_object_unref(pix);
     g_free(filename);
-    g_free(filename2);
   }
 
   // set it up
