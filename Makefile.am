@@ -1,8 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = src po data
+SUBDIRS = src data
 
-EXTRA_DIST = AUTHORS NEWS README
+EXTRA_DIST = LICENSE
 
 install-data-local:
 	@$(NORMAL_INSTALL)
