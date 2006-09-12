@@ -14,7 +14,6 @@ bin_PROGRAMS = fatfind
 
 fatfind_SOURCES = \
 	main.c fatfind.h \
-	callbacks.c callbacks.h \
 	calibrate.c calibrate.h \
 	define.c define.h \
 	investigate.cpp investigate.h \
