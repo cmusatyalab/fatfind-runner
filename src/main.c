@@ -136,7 +136,7 @@ static void setup_results_store(GtkIconView *g) {
 
 
 void on_about1_activate (GtkMenuItem *menuitem, gpointer user_data) {
-  gtk_widget_show(glade_xml_get_widget(g_xml, "about1"));
+  gtk_widget_show(glade_xml_get_widget(g_xml, "aboutdialog1"));
 }
 
 

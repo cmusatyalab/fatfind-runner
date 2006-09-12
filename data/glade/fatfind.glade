@@ -1591,10 +1591,11 @@
   <property name="comments" translatable="yes">A Diamond-based system for adipocyte exploration.</property>
   <property name="license" translatable="yes">This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution in the file named LICENSE.</property>
   <property name="wrap_license">True</property>
-  <property name="website">http://diamond.cs.cmu.edu/</property>
-  <property name="website_label" translatable="yes">Website</property>
+  <property name="website"></property>
+  <property name="website_label" translatable="yes"></property>
   <property name="authors">Adam Goode &lt;agoode@andrew.cmu.edu&gt;</property>
   <property name="translator_credits" translatable="yes" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
+  <signal name="delete_event" handler="gtk_widget_hide" last_modification_time="Tue, 12 Sep 2006 17:46:02 GMT"/>
 </widget>
 
 </glade-interface>
