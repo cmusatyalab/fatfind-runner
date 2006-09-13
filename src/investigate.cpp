@@ -597,6 +597,10 @@ void on_generateHistogram_clicked (GtkButton *button,
     // do something
     while(c_list != NULL) {
       circle_type *c = (circle_type *) c_list->data;
+      if (!c->in_result) {
+	continue;
+      }
+
       double r = (c->a + c->b) / 2.0;
       radii.push_back(r);
       minR = MIN(r, minR);
@@ -656,6 +660,10 @@ void on_generateHistogram_clicked (GtkButton *button,
     // do something
     while(c_list != NULL) {
       circle_type *c = (circle_type *) c_list->data;
+      if (!c->in_result) {
+	continue;
+      }
+
       double r = (c->a + c->b) / 2.0;
       radii.push_back(r);
       minR = MIN(r, minR);
