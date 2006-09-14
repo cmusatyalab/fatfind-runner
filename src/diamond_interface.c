@@ -17,6 +17,7 @@
 #include "diamond_interface.h"
 #include "fatfind.h"
 #include "util.h"
+#include "drawutil.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>

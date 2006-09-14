@@ -161,7 +161,7 @@ void compute_thumbnail_scale(double *scale, gint *w, gint *h) {
 
 int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y) {
   GdkImage *hit_data;
-  int hit = -1;
+  int hit = 0;
   int w, h;
 
   gdk_drawable_get_size(hitmap, &w, &h);

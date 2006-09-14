@@ -24,6 +24,7 @@
 #include "fatfind.h"
 #include "investigate.h"
 #include "util.h"
+#include "drawutil.h"
 #include "diamond_interface.h"
 
 #include "ltiHistogram.h"

@@ -38,6 +38,7 @@ static gboolean circle_match(circle_type *c) {
 
   gdouble a = c->a;
   gdouble b = c->b;
+  gdouble r = quadratic_mean_radius(a, b);
 
   if (reference_circle_object == NULL) {
     return FALSE;
@@ -48,15 +49,9 @@ static gboolean circle_match(circle_type *c) {
   r_max *= MAX(a, b);
 
   // compute eccentricity
-  if (b > a) {
-    gdouble c = a;
-    a = b;
-    b = c;
-  }
-  gdouble e = sqrt(1 - ((b*b) / (a*a)));
+  gdouble e = compute_eccentricity(a, b);
 
-  return ((c->a >= r_min) || (c->b >= r_min)) && ((c->a <= r_max) || (c->b <= r_max)) &&
-    (e <= max_eccentricity);
+  return (r >= r_min) && (r <= r_max) && (e <= max_eccentricity);
 }
 
 

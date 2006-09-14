@@ -28,6 +28,7 @@
 #include "define.h"
 #include "calibrate.h"
 #include "util.h"
+#include "drawutil.h"
 #include "circles4.h"
 
 
@@ -48,7 +49,7 @@ static void list_deleter(gpointer data, gpointer user_data) {
 static void draw_hitmap(void) {
   GdkGC *gc = gdk_gc_new(hitmap);
 
-  GdkColor col = {0, 0, 0, 0};
+  GdkColor col = {1, 0, 0, 0};
 
   GList *l = circles;
 
@@ -58,7 +59,7 @@ static void draw_hitmap(void) {
 
     float x = c->x;
     float y = c->y;
-    float r = MAX(c->a, c->b);
+    float r = quadratic_mean_radius(c->a, c->b);
 
     // draw
     x *= scale;
@@ -94,7 +95,7 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
   // if something selected?
   if (c_pix) {
     GdkGC *gc;
-    GdkColor black = {-1, 0, 0, 0};
+    GdkColor black = {0, 0, 0, 0};
 
     float p_aspect =
       (float) gdk_pixbuf_get_width(c_pix) /

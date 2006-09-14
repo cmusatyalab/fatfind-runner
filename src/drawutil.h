@@ -12,8 +12,8 @@
  * CREDITS.
  */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef DRAWUTIL_H
+#define DRAWUTIL_H
 
 #include <cairo.h>
 #include <gtk/gtk.h>
