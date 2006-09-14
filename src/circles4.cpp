@@ -28,8 +28,9 @@ GList *circles;   // for gui only, not filter
 
 
 typedef struct {
-  int minRadius;
-  int maxRadius;
+  double minRadius;
+  double maxRadius;
+  double maxEccentricity;
 } circles_state_t;
 
 
@@ -118,10 +119,8 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
 	b = c;
       }
       float e = sqrt(1 - ((b*b) / (a*a)));
-
-      // XXX magic number
-      if (e > 0.4) {
-	continue;
+      if (e > ct->maxEccentricity) {
+	in_result = FALSE;
       }
 
       // all set
@@ -147,7 +146,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
   return result;
 }
 
-static circles_state_t staticState = {-1, -1};
+static circles_state_t staticState = {-1, -1, 0.4};
 static GList *circlesFromImage2(circles_state_t *ct,
 				const int width, const int height,
 				const int stride, const int bytesPerPixel,
@@ -254,8 +253,9 @@ extern "C" {
     // init state
     cr = (circles_state_t *)g_malloc(sizeof(circles_state_t));
 
-    cr->minRadius = g_ascii_strtoull(args[0], NULL, 10);
-    cr->maxRadius = g_ascii_strtoull(args[1], NULL, 10);
+    cr->minRadius = g_ascii_strtod(args[0], NULL);
+    cr->maxRadius = g_ascii_strtod(args[1], NULL);
+    cr->maxEccentricity = g_ascii_strtod(args[2], NULL);
 
     // we're good
     *filter_args = cr;

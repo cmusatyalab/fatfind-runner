@@ -258,18 +258,22 @@ void on_startSearch_clicked (GtkButton *button,
 				      &s_iter)) {
     gdouble r_min;
     gdouble r_max;
+    gdouble max_eccentricity;
     GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
 
 
     g_debug("saved_search_store: %p", model);
     gtk_tree_model_get(model,
 		       &s_iter,
-		       1, &r_min, 2, &r_max, -1);
+		       1, &r_min,
+		       2, &r_max,
+		       3, &max_eccentricity,
+		       -1);
 
     g_debug("searching from %g to %g", r_min, r_max);
 
     // diamond
-    dr = diamond_circle_search((int) r_min, (int) r_max);
+    dr = diamond_circle_search(r_min, r_max, max_eccentricity);
 
     // take the handle, put it into the idle callback to get
     // the results?
@@ -295,7 +299,8 @@ gboolean on_selectedResult_expose_event (GtkWidget *d,
 		    GDK_RGB_DITHER_NORMAL,
 		    0, 0);
     if (show_circles) {
-      draw_circles_into_widget(d, circles_list, display_scale);
+      draw_circles_into_widget(d, circles_list, display_scale,
+			       filter_by_in_result);
     }
 
     if (is_adding) {
@@ -377,7 +382,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 	// make new thumbnail
 	pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
 	draw_into_thumbnail(pix2, i_pix, circles_list, scale,
-			    scale * prescale, w, h);
+			    scale * prescale, w, h, filter_by_in_result);
 
 	// add it back
 	gtk_list_store_set(store, &iter,
@@ -466,7 +471,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
     draw_into_thumbnail(pix2, i_pix, circles_list, scale,
-			scale * prescale, w, h);
+			scale * prescale, w, h, filter_by_in_result);
 
     // update
     gtk_list_store_set(store, &iter,

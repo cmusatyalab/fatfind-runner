@@ -21,12 +21,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void draw_circles_into_widget (GtkWidget *d, GList *circles, double scale);
-  void draw_circles(cairo_t *cr, GList *circles, double scale);
+  typedef gboolean (*circle_filter) (circle_type *c);
+
+  gboolean filter_by_in_result (circle_type *c);
+
+  void draw_circles_into_widget (GtkWidget *d, GList *circles, double scale,
+				 circle_filter f);
+  void draw_circles(cairo_t *cr, GList *circles, double scale,
+		    circle_filter f);
   void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
 			   GList *clist, double image_scale,
 			   double circle_scale,
-			   gint w, gint h);
+			   gint w, gint h, circle_filter f);
   gchar *make_thumbnail_title(GList *c);
   void compute_thumbnail_scale(double *scale, gint *w, gint *h);
   int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y);

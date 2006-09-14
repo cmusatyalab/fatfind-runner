@@ -22,6 +22,7 @@
 
 #include "fatfind.h"
 #include "define.h"
+#include "util.h"
 
 GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
@@ -32,23 +33,30 @@ static gboolean circle_match(circle_type *c) {
     gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
   gdouble r_max =
     gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
+  gdouble max_eccentricity =
+    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "maxEccentricity")));
+
+  gdouble a = c->a;
+  gdouble b = c->b;
 
   if (reference_circle_object == NULL) {
     return FALSE;
   }
 
   // scale by reference
-  r_min *= MIN(reference_circle_object->a,
-	       reference_circle_object->b);
-  r_max *= MAX(reference_circle_object->a,
-	       reference_circle_object->b);
+  r_min *= MIN(a, b);
+  r_max *= MAX(a, b);
 
-  return ((c->a >= r_min) || (c->b >= r_min)) && ((c->a <= r_max) || (c->b <= r_max));
-	  /*
-	  && (c->fuzz >= fuzz - 0.1)
-	  && (c->fuzz <= fuzz + 0.1));
-	  */
+  // compute eccentricity
+  if (b > a) {
+    gdouble c = a;
+    a = b;
+    b = c;
+  }
+  gdouble e = sqrt(1 - ((b*b) / (a*a)));
 
+  return ((c->a >= r_min) || (c->b >= r_min)) && ((c->a <= r_max) || (c->b <= r_max)) &&
+    (e <= max_eccentricity);
 }
 
 
@@ -93,76 +101,21 @@ gboolean on_simulatedSearch_expose_event (GtkWidget *d,
 					  GdkEventExpose *event,
 					  gpointer user_data) {
   if (c_pix_scaled) {
+    cairo_t *cr = gdk_cairo_create(d->window);
+
     gint w = gdk_pixbuf_get_width(c_pix_scaled);
     gint h = gdk_pixbuf_get_height(c_pix_scaled);
 
-    GdkBitmap *mask = gdk_pixmap_new(NULL, w, h, 1);
-    GdkGC *mask_gc = gdk_gc_new(mask);
-    GdkGC *gc = gdk_gc_new(d->window);
-
     GList *l = circles;
 
-    GdkColor col = {0, 0, 0, 0};
+    // draw the background
+    gdk_cairo_set_source_pixbuf(cr, c_pix_scaled, 0.0, 0.0);
+    cairo_paint(cr);
 
-    // draw a neutral background
-    GdkPixbuf *bg =
-      gdk_pixbuf_composite_color_simple(c_pix_scaled,
-					w, h,
-					GDK_INTERP_BILINEAR,
-					100,
-					16,
-					d->style->light[GTK_WIDGET_STATE(d)].pixel,
-					d->style->light[GTK_WIDGET_STATE(d)].pixel);
-    gdk_draw_pixbuf(d->window,
-		    d->style->fg_gc[GTK_WIDGET_STATE(d)],
-		    bg,
-		    0, 0, 0, 0,
-		    -1, -1,
-		    GDK_RGB_DITHER_NORMAL,
-		    0, 0);
+    // draw the circles
+    draw_circles(cr, l, scale, circle_match);
 
-    // draw the mask to get the matching subset of circles
-    gdk_gc_set_foreground(mask_gc, &col);
-    gdk_draw_rectangle(mask, mask_gc, TRUE, 0, 0, w, h);
-    col.pixel = 1;
-    gdk_gc_set_foreground(mask_gc, &col);
-    while (l != NULL) {
-      circle_type *c = (circle_type *) l->data;
-
-      if (circle_match(c)) {
-	float extra = 1.2;
-	float r = MAX(c->a, c->b);
-	float x = c->x - extra * r;
-	float y = c->y - extra * r;
-
-	// draw
-	x *= scale;
-	y *= scale;
-	r *= scale;
-
-
-	gdk_draw_arc(mask, mask_gc, TRUE,
-		     x, y, 2 * extra * r, 2 * extra * r,
-		     0, 360*64);
-      }
-      l = l->next;
-    }
-
-    // now, draw the whole thing
-    gdk_gc_set_clip_mask(gc, mask);
-
-    gdk_draw_pixbuf(d->window,
-		    gc,
-		    c_pix_scaled,
-		    0, 0, 0, 0,
-		    -1, -1,
-		    GDK_RGB_DITHER_NORMAL,
-		    0, 0);
-
-    g_object_unref(gc);
-    g_object_unref(bg);
-    g_object_unref(mask);
-    g_object_unref(mask_gc);
+    cairo_destroy(cr);
   }
 }
 
@@ -176,6 +129,7 @@ gboolean on_simulatedSearch_configure_event (GtkWidget         *widget,
 
 void on_define_search_value_changed (GtkRange *range,
 				     gpointer  user_data) {
+  // draw
   gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "simulatedSearch"));
 }
 
@@ -188,6 +142,8 @@ void on_saveSearchButton_clicked (GtkButton *button,
 
   gdouble r_min = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
   gdouble r_max = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
+  gdouble max_eccentricity = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml,
+										"maxEccentricity")));
 
   if (reference_circle_object == NULL) {
     return;
@@ -205,5 +161,6 @@ void on_saveSearchButton_clicked (GtkButton *button,
 		     0, save_name,
 		     1, r_min,
 		     2, r_max,
+		     3, max_eccentricity,
 		     -1);
 }

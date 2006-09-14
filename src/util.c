@@ -23,16 +23,19 @@
 #include <math.h>
 
 
-void draw_circles_into_widget (GtkWidget *d, GList *l, double scale) {
+gboolean filter_by_in_result (circle_type *c) {
+  return c->in_result;
+}
+
+void draw_circles_into_widget (GtkWidget *d, GList *l, double scale,
+			       circle_filter f) {
   cairo_t *cr = gdk_cairo_create(d->window);
-  draw_circles(cr, l, scale);
+  draw_circles(cr, l, scale, f);
   cairo_destroy(cr);
 }
 
 
-void draw_circles(cairo_t *cr, GList *l, double scale) {
-  cairo_set_line_width(cr, 1.0);
-
+void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
   while (l != NULL) {
     circle_type *c = (circle_type *) l->data;
 
@@ -57,14 +60,16 @@ void draw_circles(cairo_t *cr, GList *l, double scale) {
 
     cairo_restore(cr);
 
-    if (!c->in_result) {
+    if (!f(c)) {
       // dash
       double dash = 5.0;
+      cairo_set_line_width(cr, 1.0);
       cairo_set_dash(cr, &dash, 1, 0.0);
       cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
       cairo_stroke(cr);
     } else {
       // show fill, no dash
+      cairo_set_line_width(cr, 2.0);
       cairo_set_dash(cr, NULL, 0, 0.0);
       cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
       cairo_stroke_preserve(cr);
@@ -80,7 +85,8 @@ void draw_circles(cairo_t *cr, GList *l, double scale) {
 void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
 			 GList *clist, double image_scale,
 			 double circle_scale,
-			 gint w, gint h) {
+			 gint w, gint h,
+			 circle_filter f) {
   int x, y;
 
   guchar *pixels = gdk_pixbuf_get_pixels(pix2);
@@ -95,7 +101,7 @@ void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
   cairo_paint(cr);
   cairo_restore(cr);
 
-  draw_circles(cr, clist, circle_scale);
+  draw_circles(cr, clist, circle_scale, f);
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
 

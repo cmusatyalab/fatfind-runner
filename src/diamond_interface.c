@@ -193,7 +193,8 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   // draw into thumbnail
   pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
-  draw_into_thumbnail(pix2, pix, clist, scale, scale, w, h);
+  draw_into_thumbnail(pix2, pix, clist, scale, scale, w, h,
+		      filter_by_in_result);
 
   // draw into scaled-down image
   w *= 4;
@@ -231,7 +232,8 @@ gboolean diamond_result_callback(gpointer g_data) {
 }
 
 
-ls_search_handle_t diamond_circle_search(int minRadius, int maxRadius) {
+ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
+					 double maxEccentricity) {
   ls_search_handle_t dr;
   int fd;
   FILE *f;
@@ -251,11 +253,12 @@ ls_search_handle_t diamond_circle_search(int minRadius, int maxRadius) {
 	  "EVAL_FUNCTION  f_eval_circles\n"
 	  "INIT_FUNCTION  f_init_circles\n"
 	  "FINI_FUNCTION  f_fini_circles\n"
-	  "ARG  %d\n"
-	  "ARG  %d\n"
+	  "ARG  %1.20e\n"
+	  "ARG  %1.20e\n"
+	  "ARG  %1.20e\n"
 	  "REQUIRES  RGB # dependencies\n"
 	  "MERIT  50 # some relative cost\n",
-	  minRadius, maxRadius);
+	  minRadius, maxRadius, maxEccentricity);
   fflush(f);
 
   // initialize with generic search

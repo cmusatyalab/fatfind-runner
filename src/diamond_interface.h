@@ -39,7 +39,8 @@ struct collection_t
 #ifdef __cplusplus
 extern "C" {
 #endif
-  ls_search_handle_t diamond_circle_search (int minRadius, int maxRadius);
+  ls_search_handle_t diamond_circle_search (double minRadius, double maxRadius,
+					    double maxEccentricity);
   gboolean diamond_result_callback(gpointer data);
 #ifdef __cplusplus
 }

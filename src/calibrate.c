@@ -308,7 +308,7 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
 
     // draw circles
     if (show_circles) {
-      draw_circles_into_widget(d, circles, scale);
+      draw_circles_into_widget(d, circles, scale, filter_by_in_result);
     }
   }
   return TRUE;
