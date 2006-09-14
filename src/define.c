@@ -49,7 +49,7 @@ static gboolean circle_match(circle_type *c) {
   r_max *= MAX(a, b);
 
   // compute eccentricity
-  gdouble e = compute_eccentricity(a, b);
+  gdouble e = compute_eccentricity(c, b);
 
   return (r >= r_min) && (r <= r_max) && (e <= max_eccentricity);
 }
