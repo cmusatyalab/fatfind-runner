@@ -39,17 +39,19 @@ static gboolean circle_match(circle_type *c) {
   gdouble a = c->a;
   gdouble b = c->b;
   gdouble r = quadratic_mean_radius(a, b);
+  gdouble ref_r = quadratic_mean_radius(reference_circle_object->a,
+					reference_circle_object->b);
 
   if (reference_circle_object == NULL) {
     return FALSE;
   }
 
   // scale by reference
-  r_min *= MIN(a, b);
-  r_max *= MAX(a, b);
+  r_min *= ref_r;
+  r_max *= ref_r;
 
   // compute eccentricity
-  gdouble e = compute_eccentricity(c, b);
+  gdouble e = compute_eccentricity(a, b);
 
   return (r >= r_min) && (r <= r_max) && (e <= max_eccentricity);
 }
