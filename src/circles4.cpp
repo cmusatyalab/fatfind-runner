@@ -23,6 +23,7 @@
 
 #include "circles4.h"
 #include "lib_filter.h"
+#include "util.h"
 
 GList *circles;   // for gui only, not filter
 
@@ -45,8 +46,8 @@ static gint circle_radius_compare(gconstpointer a,
   const circle_type *c2 = (circle_type *) b;
 
   // assume a and b are positive
-  double c1_radius = c1->a + c1->b;
-  double c2_radius = c2->a + c2->b;
+  double c1_radius = quadratic_mean_radius(c1->a, c1->b);
+  double c2_radius = quadratic_mean_radius(c2->a, c2->b);
   if (c1_radius < c2_radius) {
     return 1;
   } else if (c2_radius < c1_radius) {
@@ -103,22 +104,18 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
     for(unsigned int j=0; j<ellipses.size(); j++) {
       float a = ellipses[j].a * pyrScale;
       float b = ellipses[j].b * pyrScale;
+      float r = quadratic_mean_radius(a, b);
       gboolean in_result = TRUE;
 
       // determine if it should go in by radius
-      if (!(ct->minRadius < 0 || a >= ct->minRadius || b >= ct->minRadius)) {
+      if (!(ct->minRadius < 0 || r >= ct->minRadius)) {
 	in_result = FALSE;
-      } else if (!(ct->maxRadius < 0 || a <= ct->maxRadius || b <= ct->maxRadius)) {
+      } else if (!(ct->maxRadius < 0 || r <= ct->maxRadius)) {
 	in_result = FALSE;
       }
 
       // compute eccentricity
-      if (b > a) {
-	float c = a;
-	a = b;
-	b = c;
-      }
-      float e = sqrt(1 - ((b*b) / (a*a)));
+      float e = compute_eccentricity(a, b);
       if (e > ct->maxEccentricity) {
 	in_result = FALSE;
       }
@@ -190,12 +187,12 @@ static GList *circlesFromImage2(circles_state_t *ct,
   while (iter != NULL) {
     // find other centers within this circle (assume no eccentricity)
     circle_type *c1 = (circle_type *) iter->data;
-    double c1_radius = (c1->a + c1->b) / 2.0;
+    double c1_radius = quadratic_mean_radius(c1->a, c1->b);
 
     GList *iter2 = g_list_next(iter);
     while (iter2 != NULL) {
       circle_type *c2 = (circle_type *) iter2->data;
-      double c2_radius = (c2->a + c2->b) / 2.0;
+      double c2_radius = quadratic_mean_radius(c2->a, c2->b);
 
       // is c2 within c1?
       double xd = c2->x - c1->x;
