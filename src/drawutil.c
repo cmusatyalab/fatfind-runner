@@ -18,6 +18,7 @@
 
 #include "fatfind.h"
 #include "drawutil.h"
+#include "util.h"
 
 #include <cairo.h>
 #include <math.h>
@@ -176,4 +177,49 @@ int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y) {
   g_object_unref(hit_data);
 
   return hit - 1;
+}
+
+void draw_hitmap(GList *circles, GdkDrawable *hitmap,
+		 gdouble scale) {
+  GdkGC *gc = gdk_gc_new(hitmap);
+
+  GdkColor black = {0, 0, 0, 0};
+
+  GdkColor col = {1, 0, 0, 0};
+
+  GList *l = circles;
+
+  int w, h;
+
+  gdk_drawable_get_size(hitmap, &w, &h);
+
+  // clear hitmap
+  gdk_gc_set_foreground(gc, &black);
+  gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
+
+  while (l != NULL) {
+    gdk_gc_set_foreground(gc, &col);
+    circle_type *c = (circle_type *) l->data;
+
+    float x = c->x;
+    float y = c->y;
+    float r = quadratic_mean_radius(c->a, c->b);
+
+    // draw
+    x *= scale;
+    y *= scale;
+    r *= scale;
+
+    gdk_draw_arc(hitmap, gc, TRUE,
+		 x - r, y - r, 2 * r, 2 * r,
+		 0, 360*64);
+    gdk_draw_arc(hitmap, gc, FALSE,
+		 x - r, y - r, 2 * r, 2 * r,
+		 0, 360*64);
+
+    l = l->next;
+    col.pixel++;
+  }
+
+  g_object_unref(gc);
 }

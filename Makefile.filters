@@ -1,2 +1,2 @@
-data/filter/fil_circle.so: src/circles4.cpp src/circles4.h
-	g++ -I/opt/diamond/include -L/opt/diamond/lib -I/usr/local/diamond/include -L/usr/local/diamond/lib `pkg-config glib-2.0 --cflags` `lti-config nogtk --cxxflags` -O2 -g -m32 -Wall  -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/circles4.cpp -Wl,-Bdynamic `lti-config nogtk --libs` `pkg-config glib-2.0 --libs` -lstdc++ -lpthread
+data/filter/fil_circle.so: src/circles4.cpp src/circles4.h src/util.h src/util.c
+	g++ -fPIC -I/opt/diamond/include -L/opt/diamond/lib -I/usr/local/diamond/include -L/usr/local/diamond/lib `pkg-config glib-2.0 --cflags` `lti-config nogtk --cxxflags` -O2 -g -m32 -Wall -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/circles4.cpp src/util.c `lti-config nogtk --libs` `pkg-config glib-2.0 --libs` -Wl,-Bdynamic

@@ -64,52 +64,6 @@ static void stop_search(void) {
   }
 }
 
-static void draw_hitmap(void) {
-  GdkGC *gc = gdk_gc_new(hitmap);
-
-  GdkColor col = {0, 0, 0, 0};
-
-  GList *l = circles_list;
-
-  GdkColor black = {-1, 0, 0, 0};
-
-  int w, h;
-
-  gdk_drawable_get_size(hitmap, &w, &h);
-
-  // clear hitmap
-  gdk_gc_set_foreground(gc, &black);
-  gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
-
-  while (l != NULL) {
-    gdk_gc_set_foreground(gc, &col);
-    circle_type *c = (circle_type *) l->data;
-
-    float x = c->x;
-    float y = c->y;
-    float r = MAX(c->a, c->b);
-
-    // draw
-    x *= display_scale;
-    y *= display_scale;
-    r *= display_scale;
-
-    gdk_draw_arc(hitmap, gc, TRUE,
-		 (int) (x - r), (int) (y - r),
-		 (int) (2 * r), (int) (2 * r),
-		 0, 360*64);
-    gdk_draw_arc(hitmap, gc, FALSE,
-		 (int) (x - r), (int) (y - r),
-		 (int) (2 * r), (int) (2 * r),
-		 0, 360*64);
-
-    l = l->next;
-    col.pixel++;
-  }
-
-  g_object_unref(gc);
-}
-
 static void set_show_circles(gboolean state) {
   if (show_circles != state) {
     show_circles = state;
@@ -204,7 +158,7 @@ static void draw_investigate_offscreen_items(gint allocation_width,
 
 
     hitmap = gdk_pixmap_new(NULL, w, h, 32);
-    draw_hitmap();
+    draw_hitmap(circles_list, hitmap, display_scale);
   }
 }
 
@@ -333,7 +287,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 					       gpointer        user_data) {
   gint x, y;
   gint w, h;
-  guint32 hit = -1;
+  gint32 hit = -1;
 
   // if not selected, do nothing
   if (i_pix == NULL) {
@@ -393,7 +347,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 			   -1);
 
 	g_object_unref(pix2);
-	draw_hitmap();
+	draw_hitmap(circles_list, hitmap, display_scale);
 	gtk_widget_queue_draw(widget);
       }
       return TRUE;
@@ -483,7 +437,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     g_object_unref(pix2);
 
-    draw_hitmap();
+    draw_hitmap(circles_list, hitmap, display_scale);
     gtk_widget_queue_draw(widget);
     return TRUE;
   }

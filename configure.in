@@ -19,10 +19,6 @@ PKG_CHECK_MODULES(glade, [$pkg_modules])
 AC_SUBST(glade_CFLAGS)
 AC_SUBST(glade_LIBS)
 
-GETTEXT_PACKAGE=fatfind
-AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
-
 
 # XXX circular dependencies
 AC_SUBST(LIBS, "`lti-config nogtk --libs` -lpthread -lm -lsearchlet -lfilterexec -lfilter -llog -lodisk -ltools -lhstub -ldctl -ldconfig -llog -lssl")
@@ -30,7 +26,7 @@ AC_SUBST(LIBS, "`lti-config nogtk --libs` -lpthread -lm -lsearchlet -lfilterexec
 
 # XXX should use pkg-config
 AC_SUBST(LDFLAGS, "-L/opt/diamond/lib -L/usr/local/diamond/lib")
-AC_SUBST(CPPFLAGS, "-I/opt/diamond/include -I/usr/local/diamond/include `lti-config nogtk --cxxflags`")
+AC_SUBST(CPPFLAGS, "-Werror-implicit-function-declaration -I/opt/diamond/include -I/usr/local/diamond/include `lti-config nogtk --cxxflags`")
 
 # XXX should work on more than 1 arch
 AC_SUBST(CFLAGS, "-m32")
@@ -57,10 +53,6 @@ AC_CHECK_LIB([tools], [main], ,
         [AC_MSG_ERROR(Missing libtools)])
 
 
-
-dnl Add the languages which your application supports here.
-ALL_LINGUAS=""
-AM_GLIB_GNU_GETTEXT
 
 AC_OUTPUT([
 Makefile

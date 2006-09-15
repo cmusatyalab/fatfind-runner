@@ -246,7 +246,7 @@ extern "C" {
     circles_state_t *cr;
 
     // check parameters
-    if (num_arg != 2) {
+    if (num_arg != 3) {
       return -1;
     }
 

@@ -43,6 +43,5 @@ gdouble quadratic_mean_radius(gdouble a, gdouble b) {
 
   result = sqrt((3.0*a*a + b*b) / 4.0);
 
-  g_debug("qmr: (%g,%g) -> %g", a, b, result);
   return result;
 }

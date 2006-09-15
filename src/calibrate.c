@@ -46,40 +46,6 @@ static void list_deleter(gpointer data, gpointer user_data) {
   g_free(data);
 }
 
-static void draw_hitmap(void) {
-  GdkGC *gc = gdk_gc_new(hitmap);
-
-  GdkColor col = {1, 0, 0, 0};
-
-  GList *l = circles;
-
-    while (l != NULL) {
-    gdk_gc_set_foreground(gc, &col);
-    circle_type *c = (circle_type *) l->data;
-
-    float x = c->x;
-    float y = c->y;
-    float r = quadratic_mean_radius(c->a, c->b);
-
-    // draw
-    x *= scale;
-    y *= scale;
-    r *= scale;
-
-    gdk_draw_arc(hitmap, gc, TRUE,
-		 x - r, y - r, 2 * r, 2 * r,
-		 0, 360*64);
-    gdk_draw_arc(hitmap, gc, FALSE,
-		 x - r, y - r, 2 * r, 2 * r,
-		 0, 360*64);
-
-    l = l->next;
-    col.pixel++;
-  }
-
-  g_object_unref(gc);
-}
-
 static void draw_calibrate_offscreen_items(gint allocation_width,
 					   gint allocation_height) {
   // clear old scaled pix
@@ -94,9 +60,6 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
 
   // if something selected?
   if (c_pix) {
-    GdkGC *gc;
-    GdkColor black = {0, 0, 0, 0};
-
     float p_aspect =
       (float) gdk_pixbuf_get_width(c_pix) /
       (float) gdk_pixbuf_get_height(c_pix);
@@ -126,16 +89,7 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
 
 
     hitmap = gdk_pixmap_new(NULL, w, h, 32);
-    gc = gdk_gc_new(hitmap);
-
-    // clear hitmap
-    gdk_gc_set_foreground(gc, &black);
-    gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
-    g_object_unref(gc);
-
-    g_debug("new hitmap: %p, w: %d, h: %d", hitmap, w, h);
-
-    draw_hitmap();
+    draw_hitmap(circles, hitmap, scale);
   }
 }
 

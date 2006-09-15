@@ -22,6 +22,10 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <gtk/gtk.h>
+#include <glib/gstdio.h>
+
+#include "lib_filter.h"
+#include "lib_dconfig.h"
 
 static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
 static gid_list_t diamond_gid_list;
@@ -121,7 +125,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   void *data;
   char *name;
   void *cookie;
-  int len;
+  unsigned int len;
   int err;
   int w, origW;
   int h, origH;
@@ -158,7 +162,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   printf("got object: %p\n", obj);
 
-  err = lf_ref_attr(obj, "circle-data", &len, &data);
+  err = lf_ref_attr(obj, "circle-data", &len, (unsigned char **) &data);
   g_assert(!err);
 
   // XXX
@@ -175,15 +179,15 @@ gboolean diamond_result_callback(gpointer g_data) {
   title = make_thumbnail_title(clist);
 
   // thumbnail
-  err = lf_ref_attr(obj, "_cols.int", &len, &data);
+  err = lf_ref_attr(obj, "_cols.int", &len, (unsigned char **) &data);
   g_assert(!err);
   origW = w = *((int *) data);
 
-  err = lf_ref_attr(obj, "_rows.int", &len, &data);
+  err = lf_ref_attr(obj, "_rows.int", &len, (unsigned char **) &data);
   g_assert(!err);
   origH = h = *((int *) data);
 
-  err = lf_ref_attr(obj, "_rgb_image.rgbimage", &len, &data);
+  err = lf_ref_attr(obj, "_rgb_image.rgbimage", &len, (unsigned char **) &data);
   g_assert(!err);
 
   printf(" img %dx%d (%d bytes)\n", w, h, len);
