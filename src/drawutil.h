@@ -29,6 +29,8 @@ extern "C" {
 				 circle_filter f);
   void draw_circles(cairo_t *cr, GList *circles, double scale,
 		    circle_filter f);
+  void convert_cairo_argb32_to_pixbuf(guchar *pixels,
+				      gint w, gint h, gint stride);
   void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
 			   GList *clist, double image_scale,
 			   double circle_scale,

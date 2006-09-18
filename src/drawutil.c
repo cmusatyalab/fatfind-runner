@@ -82,14 +82,36 @@ void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
   }
 }
 
+void convert_cairo_argb32_to_pixbuf(guchar *pixels,
+				    gint w, gint h, gint stride) {
+  gint x, y;
+
+  // swap around the data
+  // XXX also handle pre-multiplying?
+  for (y = 0; y < h; y++) {
+    for (x = 0; x < w; x++) {
+      // XXX is endianness really different?
+      if (G_BYTE_ORDER == G_LITTLE_ENDIAN) {
+	guchar *p = pixels + (stride * y) + (4 * x);
+
+	guchar r = p[2];
+	guchar b = p[0];
+
+	p[0] = r;
+	p[2] = b;
+      } else if (G_BYTE_ORDER == G_BIG_ENDIAN) {
+	guint *p = (guint *) (pixels + (stride * y) + (4 * x));
+	*p = GUINT32_SWAP_LE_BE(*p);
+      }
+    }
+  }
+}
 
 void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
 			 GList *clist, double image_scale,
 			 double circle_scale,
 			 gint w, gint h,
 			 circle_filter f) {
-  int x, y;
-
   guchar *pixels = gdk_pixbuf_get_pixels(pix2);
   int stride = gdk_pixbuf_get_rowstride(pix2);
   cairo_surface_t *surface = cairo_image_surface_create_for_data(pixels,
@@ -106,23 +128,7 @@ void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,
   cairo_destroy(cr);
   cairo_surface_destroy(surface);
 
-  // swap around the data
-  for (y = 0; y < h; y++) {
-    for (x = 0; x < w; x++) {
-      if (G_BYTE_ORDER == G_LITTLE_ENDIAN) {
-	guchar *p = pixels + (stride * y) + (4 * x);
-
-	guchar r = p[2];
-	guchar b = p[0];
-
-	p[0] = r;
-	p[2] = b;
-      } else if (G_BYTE_ORDER == G_BIG_ENDIAN) {
-	guint *p = (guint *) (pixels + (stride * y) + (4 * x));
-	*p = GUINT32_SWAP_LE_BE(*p);
-      }
-    }
-  }
+  convert_cairo_argb32_to_pixbuf(pixels, w, h, stride);
 }
 
 gchar *make_thumbnail_title(GList *c) {
