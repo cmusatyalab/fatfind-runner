@@ -183,13 +183,21 @@ static GList *circlesFromImage2(circles_state_t *ct,
 
   result = g_list_sort(result, circle_radius_compare);  // sort
 
-  GList *iter = result;
-  while (iter != NULL) {
+  GList *iter;
+  for (iter = result; iter != NULL; iter = g_list_next(iter)) {
     // find other centers within this circle (assume no eccentricity)
     circle_type *c1 = (circle_type *) iter->data;
     double c1_radius = quadratic_mean_radius(c1->a, c1->b);
 
-    GList *iter2 = g_list_next(iter);
+    GList *iter2;
+
+    // don't bother if large eccentricity
+    double c1_e = compute_eccentricity(c1->a, c1->b);
+    if (c1_e > 0.4) {
+      continue;
+    }
+
+    iter2 = g_list_next(iter);
     while (iter2 != NULL) {
       circle_type *c2 = (circle_type *) iter2->data;
       double c2_radius = quadratic_mean_radius(c2->a, c2->b);
@@ -215,7 +223,6 @@ static GList *circlesFromImage2(circles_state_t *ct,
     }
     printf(".");
     fflush(stdout);
-    iter = g_list_next(iter);
   }
   printf("\n");
 

@@ -23,28 +23,35 @@
 #include "fatfind.h"
 #include "define.h"
 #include "util.h"
+#include "drawutil.h"
 
 GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
 static float scale;
 
 static gboolean circle_match(circle_type *c) {
-  gdouble r_min =
-    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
-  gdouble r_max =
-    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
-  gdouble max_eccentricity =
-    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "maxEccentricity")));
+  gdouble r_min;
+  gdouble r_max;
+  gdouble max_eccentricity;
 
-  gdouble a = c->a;
-  gdouble b = c->b;
-  gdouble r = quadratic_mean_radius(a, b);
-  gdouble ref_r = quadratic_mean_radius(reference_circle_object->a,
-					reference_circle_object->b);
+  gdouble a, b, r, ref_r;
 
   if (reference_circle_object == NULL) {
     return FALSE;
   }
+
+  r_min =
+    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusLower")));
+  r_max =
+    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
+  max_eccentricity =
+    gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "maxEccentricity")));
+
+  a = c->a;
+  b = c->b;
+  r = quadratic_mean_radius(a, b);
+  ref_r = quadratic_mean_radius(reference_circle_object->a,
+				reference_circle_object->b);
 
   // scale by reference
   r_min *= ref_r;
