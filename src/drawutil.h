@@ -18,6 +18,13 @@
 #include <cairo.h>
 #include <gtk/gtk.h>
 
+typedef enum {
+  CIRCLE_FILL_SOLID,
+  CIRCLE_FILL_DASHED,
+  CIRCLE_FILL_HAIRLINE
+} circle_fill_t;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,6 +36,8 @@ extern "C" {
 				 circle_filter f);
   void draw_circles(cairo_t *cr, GList *circles, double scale,
 		    circle_filter f);
+  void draw_circle(cairo_t *cr, circle_type *circle, double scale,
+		   circle_fill_t fill);
   void convert_cairo_argb32_to_pixbuf(guchar *pixels,
 				      gint w, gint h, gint stride);
   void draw_into_thumbnail(GdkPixbuf *pix2, GdkPixbuf *pix,

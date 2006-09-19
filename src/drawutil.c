@@ -36,15 +36,20 @@ void draw_circles_into_widget (GtkWidget *d, GList *l, double scale,
 }
 
 
-void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
-  while (l != NULL) {
-    circle_type *c = (circle_type *) l->data;
+void draw_circle(cairo_t *cr, circle_type *circle, double scale,
+		 circle_fill_t fill) {
+    float x = circle->x;
+    float y = circle->y;
+    float a = circle->a;
+    float b = circle->b;
+    float t = circle->t;
 
-    float x = c->x;
-    float y = c->y;
-    float a = c->a;
-    float b = c->b;
-    float t = c->t;
+    double dash;
+
+    double device_x = 0;
+    double device_y = 0;
+    double device_a = 1.0;
+    double device_b = 1.0;
 
     //    g_debug("drawing %g %g %g %g %g", x, y, a, b, t);
 
@@ -59,16 +64,25 @@ void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
     cairo_move_to(cr, 1.0, 0.0);
     cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
 
+    /*
+    cairo_user_to_device(cr, &device_x, &device_y);
+    cairo_user_to_device(cr, &device_a, &device_b);
+    g_debug("drawing at device coords (%g,%g) (%g,%g)",
+	    device_x, device_y, device_a, device_b);
+    */
+
     cairo_restore(cr);
 
-    if (!f(c)) {
-      // dash
-      double dash = 5.0;
+    switch (fill) {
+    case CIRCLE_FILL_DASHED:
+      dash = 5.0;
       cairo_set_line_width(cr, 1.0);
       cairo_set_dash(cr, &dash, 1, 0.0);
       cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
       cairo_stroke(cr);
-    } else {
+      break;
+
+    case CIRCLE_FILL_SOLID:
       // show fill, no dash
       cairo_set_line_width(cr, 2.0);
       cairo_set_dash(cr, NULL, 0, 0.0);
@@ -76,8 +90,21 @@ void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
       cairo_stroke_preserve(cr);
       cairo_set_source_rgba(cr, 1.0, 0.0, 0.0, 0.2);
       cairo_fill(cr);
-    }
+      break;
 
+    case CIRCLE_FILL_HAIRLINE:
+      cairo_set_line_width(cr, 1.0);
+      cairo_set_dash(cr, NULL, 0, 0.0);
+      cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+      cairo_stroke(cr);
+      break;
+    }
+}
+
+void draw_circles(cairo_t *cr, GList *l, double scale, circle_filter f) {
+  while (l != NULL) {
+    circle_type *c = (circle_type *) l->data;
+    draw_circle(cr, c, scale, f(c) ? CIRCLE_FILL_SOLID : CIRCLE_FILL_DASHED);
     l = l->next;
   }
 }
@@ -90,19 +117,19 @@ void convert_cairo_argb32_to_pixbuf(guchar *pixels,
   // XXX also handle pre-multiplying?
   for (y = 0; y < h; y++) {
     for (x = 0; x < w; x++) {
-      // XXX is endianness really different?
-      if (G_BYTE_ORDER == G_LITTLE_ENDIAN) {
-	guchar *p = pixels + (stride * y) + (4 * x);
+      // XXX check endian
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+      guchar *p = pixels + (stride * y) + (4 * x);
 
-	guchar r = p[2];
-	guchar b = p[0];
+      guchar r = p[2];
+      guchar b = p[0];
 
-	p[0] = r;
-	p[2] = b;
-      } else if (G_BYTE_ORDER == G_BIG_ENDIAN) {
-	guint *p = (guint *) (pixels + (stride * y) + (4 * x));
-	*p = GUINT32_SWAP_LE_BE(*p);
-      }
+      p[0] = r;
+      p[2] = b;
+#else
+      guint *p = (guint *) (pixels + (stride * y) + (4 * x));
+      *p = GUINT32_SWAP_LE_BE(*p);
+#endif
     }
   }
 }
@@ -173,7 +200,7 @@ int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y) {
 
   gdk_drawable_get_size(hitmap, &w, &h);
   hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
-  g_debug("get_circle_at_point: x=%d, w=%d, y=%d, h=%d", x, w, y, h);
+  //g_debug("get_circle_at_point: x=%d, w=%d, y=%d, h=%d", x, w, y, h);
 
   // check to see if hits hitmap
   if ((x < w) && (y < h)) {

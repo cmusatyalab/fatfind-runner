@@ -129,23 +129,34 @@ static void set_reference_circle(guint32 c) {
       (g_list_nth(circles, reference_circle))->data;
 
     float extra = 1.2;
-    float r = MAX(circ->a, circ->b);
+    float r = quadratic_mean_radius(circ->a, circ->b);
     float x = circ->x - extra * r;
     float y = circ->y - extra * r;
+    float e = compute_eccentricity(circ->a, circ->b);
     int width = gdk_pixbuf_get_width(c_pix);
     int height = gdk_pixbuf_get_height(c_pix);
 
-    GdkPixbuf *sub;
     GdkPixbuf *sub_scaled;
 
     gchar *new_text;
+
+    cairo_t *cr;
+    cairo_surface_t *surface;
+    guchar *pixels;
 
     int xsize = 2 * extra * r;
     int ysize = 2 * extra * r;
 
     int scaledX = 150;
     int scaledY = 150;
+    int scaledStride;
 
+    double this_scale;
+
+    // set object
+    reference_circle_object = (g_list_nth(circles, reference_circle))->data;
+
+    // draw
     if (x < 0) {
       x = 0;
     }
@@ -165,29 +176,47 @@ static void set_reference_circle(guint32 c) {
       scaledX *= ((double) xsize / (double) ysize);
     }
 
-    sub = gdk_pixbuf_new_subpixbuf(c_pix,
-				   x,
-				   y,
-				   xsize,
-				   ysize);
-    sub_scaled = gdk_pixbuf_scale_simple(sub,
-					 scaledX,
-					 scaledY,
-					 GDK_INTERP_BILINEAR);
+    this_scale = (double) scaledX / (double) xsize;
+
+    // setup for drawing with cairo
+    sub_scaled = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, scaledX, scaledY);
+    pixels = gdk_pixbuf_get_pixels(sub_scaled);
+    scaledStride = gdk_pixbuf_get_rowstride(sub_scaled);
+    surface = cairo_image_surface_create_for_data(pixels, CAIRO_FORMAT_ARGB32,
+						  scaledX, scaledY,
+						  scaledStride);
+    cr = cairo_create(surface);
+    cairo_surface_destroy(surface);
+
+    // clear
+    cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+    cairo_paint(cr);
+
+    cairo_save(cr);
+    cairo_scale(cr, this_scale, this_scale);
+    gdk_cairo_set_source_pixbuf(cr, c_pix, -x, -y);
+    cairo_paint(cr);
+    cairo_restore(cr);
+
+    cairo_translate(cr, -x * this_scale, -y * this_scale);
+    //g_debug("drawing reference circle, this_scale: %g", this_scale);
+    draw_circle(cr, reference_circle_object, this_scale, CIRCLE_FILL_HAIRLINE);
+    cairo_destroy(cr);
+
+    convert_cairo_argb32_to_pixbuf(pixels, scaledX, scaledY, scaledStride);
+
     gtk_image_set_from_pixbuf(im, sub_scaled);
     gtk_image_set_from_pixbuf(im2, sub_scaled);
-    g_object_unref(sub);
     g_object_unref(sub_scaled);
 
 
     // set text
-    new_text = g_strdup_printf("Radius: %g\n", r);
+    new_text = g_strdup_printf("Quadratic mean radius: %g\n"
+			       "Eccentricity: %.2g%%\n",
+			       r, e * 100.0);
     gtk_label_set_text(text, new_text);
     gtk_label_set_text(text2, new_text);
     g_free(new_text);
-
-    // set object
-    reference_circle_object = (g_list_nth(circles, reference_circle))->data;
   }
 }
 
@@ -234,7 +263,7 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 		   gdk_pixbuf_get_pixels(c_pix));
   //    circles = g_list_prepend(circles, c);
 
-  g_debug("c_pix: %p", c_pix);
+  //g_debug("c_pix: %p", c_pix);
   //g_debug("c_txt: %s", c_txt);
 
   w = glade_xml_get_widget(g_xml, "selectedImage");
@@ -303,7 +332,7 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
   }
 
   if (event->type == GDK_BUTTON_PRESS && event->button == 1) {
-    g_debug("x: %g, y: %g", event->x, event->y);
+    //g_debug("x: %g, y: %g", event->x, event->y);
     set_show_circles(TRUE);
 
     // hit?
@@ -339,7 +368,7 @@ gboolean on_selectedImage_configure_event (GtkWidget         *widget,
 gboolean on_selectedImage_enter_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  g_debug("enter selectedImage");
+  //g_debug("enter selectedImage");
   set_show_circles(TRUE);
   return TRUE;
 }
@@ -347,7 +376,7 @@ gboolean on_selectedImage_enter_notify_event (GtkWidget        *widget,
 gboolean on_selectedImage_leave_notify_event (GtkWidget        *widget,
 					      GdkEventCrossing *event,
 					      gpointer          user_data) {
-  g_debug("leave selectedImage");
+  //g_debug("leave selectedImage");
   set_show_circles(FALSE);
   return TRUE;
 }
