@@ -35,7 +35,7 @@
 GdkPixbuf *c_pix;
 static GdkPixbuf *c_pix_scaled;
 
-static GdkPixmap *hitmap;
+static guchar *hitmap;
 static gboolean show_circles;
 static gfloat scale;
 
@@ -54,7 +54,7 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
     c_pix_scaled = NULL;
   }
   if (hitmap != NULL) {
-    g_object_unref(hitmap);
+    g_free(hitmap);
     hitmap = NULL;
   }
 
@@ -88,8 +88,8 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
 					   GDK_INTERP_BILINEAR);
 
 
-    hitmap = gdk_pixmap_new(NULL, w, h, 32);
-    draw_hitmap(circles, hitmap, scale);
+    hitmap = g_malloc(w * h * 4);
+    draw_hitmap(circles, hitmap, w, h, scale);
   }
 }
 
@@ -323,7 +323,6 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
 					      GdkEventButton *event,
 					      gpointer        user_data) {
   gint w, h;
-  GdkImage *hit_data;
   guint32 hit = -1;
 
   // if not selected, do nothing
@@ -336,7 +335,10 @@ gboolean on_selectedImage_button_press_event (GtkWidget      *widget,
     set_show_circles(TRUE);
 
     // hit?
-    hit = get_circle_at_point(hitmap, event->x, event->y);
+    hit = get_circle_at_point(hitmap,
+			      event->x, event->y,
+			      gdk_pixbuf_get_width(c_pix_scaled),
+			      gdk_pixbuf_get_height(c_pix_scaled));
 
     // if so, then illuminate selected item and update reference
     if (hit != -1) {

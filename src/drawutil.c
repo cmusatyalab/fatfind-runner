@@ -193,66 +193,71 @@ void compute_thumbnail_scale(double *scale, gint *w, gint *h) {
   }
 }
 
-int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y) {
-  GdkImage *hit_data;
+int get_circle_at_point(guchar *hitmap,
+			gint x, gint y,
+			gint w, gint h) {
   int hit = 0;
-  int w, h;
 
-  gdk_drawable_get_size(hitmap, &w, &h);
-  hit_data = gdk_drawable_get_image(hitmap, 0, 0, w, h);
   //g_debug("get_circle_at_point: x=%d, w=%d, y=%d, h=%d", x, w, y, h);
 
   // check to see if hits hitmap
   if ((x < w) && (y < h)) {
-    hit = gdk_image_get_pixel(hit_data, x, y);
+    hit = (((int *) hitmap)[y * w + x]) & 0xFFFFFF;
     g_debug("hit: %d", hit);
   }
-  g_object_unref(hit_data);
 
   return hit - 1;
 }
 
-void draw_hitmap(GList *circles, GdkDrawable *hitmap,
+void draw_hitmap(GList *circles, guchar *hitmap,
+		 gint w, gint h,
 		 gdouble scale) {
-  GdkGC *gc = gdk_gc_new(hitmap);
-
-  GdkColor black = {0, 0, 0, 0};
-
-  GdkColor col = {1, 0, 0, 0};
-
   GList *l = circles;
 
-  int w, h;
+  cairo_surface_t *surface =
+    cairo_image_surface_create_for_data(hitmap,
+					CAIRO_FORMAT_ARGB32,
+					w, h, w * 4);
+  cairo_t *cr = cairo_create(surface);
+  cairo_surface_destroy(surface);
 
-  gdk_drawable_get_size(hitmap, &w, &h);
+  int color = 1;
 
   // clear hitmap
-  gdk_gc_set_foreground(gc, &black);
-  gdk_draw_rectangle(hitmap, gc, TRUE, 0, 0, w, h);
+  cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+  cairo_paint(cr);
 
   while (l != NULL) {
-    gdk_gc_set_foreground(gc, &col);
+    double red = ((color & 0xFF0000) >> 16) / 255.0;
+    double green = ((color & 0xFF00) >> 8) / 255.0;
+    double blue = (color & 0xFF) / 255.0;
     circle_type *c = (circle_type *) l->data;
 
     float x = c->x;
     float y = c->y;
-    float r = quadratic_mean_radius(c->a, c->b);
+    float t = c->t;
+    float a = c->a;
+    float b = c->b;
 
     // draw
-    x *= scale;
-    y *= scale;
-    r *= scale;
+    cairo_save(cr);
+    cairo_scale(cr, scale, scale);
 
-    gdk_draw_arc(hitmap, gc, TRUE,
-		 x - r, y - r, 2 * r, 2 * r,
-		 0, 360*64);
-    gdk_draw_arc(hitmap, gc, FALSE,
-		 x - r, y - r, 2 * r, 2 * r,
-		 0, 360*64);
+    cairo_translate(cr, x, y);
+    cairo_rotate(cr, t);
+    cairo_scale(cr, a, b);
+
+    cairo_move_to(cr, 1.0, 1.0);
+    cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
+    cairo_restore(cr);
+
+    cairo_set_source_rgb(cr, red, green, blue);
+    cairo_stroke_preserve(cr);
+    cairo_fill(cr);
 
     l = l->next;
-    col.pixel++;
+    color++;
   }
 
-  g_object_unref(gc);
+  cairo_destroy(cr);
 }

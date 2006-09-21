@@ -35,7 +35,7 @@ GtkListStore *found_items;
 static GdkPixbuf *i_pix;
 static GdkPixbuf *i_pix_scaled;
 
-static GdkPixmap *hitmap;
+static guchar *hitmap;
 static gdouble prescale;
 static gdouble display_scale = 1.0;
 
@@ -122,7 +122,7 @@ static void draw_investigate_offscreen_items(gint allocation_width,
     i_pix_scaled = NULL;
   }
   if (hitmap != NULL) {
-    g_object_unref(hitmap);
+    g_free(hitmap);
     hitmap = NULL;
   }
 
@@ -157,8 +157,8 @@ static void draw_investigate_offscreen_items(gint allocation_width,
 					   GDK_INTERP_BILINEAR);
 
 
-    hitmap = gdk_pixmap_new(NULL, w, h, 32);
-    draw_hitmap(circles_list, hitmap, display_scale);
+    hitmap = (guchar *) g_malloc(w * h * 4);
+    draw_hitmap(circles_list, hitmap, w, h, display_scale);
   }
 }
 
@@ -300,7 +300,10 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 
     if (event->state & GDK_SHIFT_MASK) {
       // delete
-      hit = get_circle_at_point(hitmap, (int) event->x, (int) event->y);
+      hit = get_circle_at_point(hitmap,
+				(int) event->x, (int) event->y,
+				gdk_pixbuf_get_width(i_pix_scaled),
+				gdk_pixbuf_get_height(i_pix_scaled));
 
       // if so, then delete selected item and update reference
       if (hit != -1) {
@@ -347,7 +350,10 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 			   -1);
 
 	g_object_unref(pix2);
-	draw_hitmap(circles_list, hitmap, display_scale);
+	draw_hitmap(circles_list, hitmap,
+		    gdk_pixbuf_get_width(i_pix_scaled),
+		    gdk_pixbuf_get_height(i_pix_scaled),
+		    display_scale);
 	gtk_widget_queue_draw(widget);
       }
       return TRUE;
@@ -392,7 +398,10 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     if (r < 1) {
       // too small, this toggles the exclusion filter
-      int hit = get_circle_at_point(hitmap, (int) event->x, (int) event->y);
+      int hit = get_circle_at_point(hitmap,
+				    (int) event->x, (int) event->y,
+				    gdk_pixbuf_get_width(i_pix_scaled),
+				    gdk_pixbuf_get_height(i_pix_scaled));
       if (hit != -1) {
 	c = (circle_type *) (g_list_nth(circles_list, hit)->data);
 	c->in_result = !c->in_result;
@@ -437,7 +446,10 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     g_object_unref(pix2);
 
-    draw_hitmap(circles_list, hitmap, display_scale);
+    draw_hitmap(circles_list, hitmap,
+		gdk_pixbuf_get_width(i_pix_scaled),
+		gdk_pixbuf_get_height(i_pix_scaled),
+		display_scale);
     gtk_widget_queue_draw(widget);
     return TRUE;
   }

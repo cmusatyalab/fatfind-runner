@@ -46,8 +46,10 @@ extern "C" {
 			   gint w, gint h, circle_filter f);
   gchar *make_thumbnail_title(GList *c);
   void compute_thumbnail_scale(double *scale, gint *w, gint *h);
-  int get_circle_at_point(GdkPixmap *hitmap, gint x, gint y);
-  void draw_hitmap(GList *circles_list, GdkDrawable *hitmap,
+  int get_circle_at_point(guchar *hitmap,
+			  gint x, gint y,
+			  gint w, gint h);
+  void draw_hitmap(GList *circles_list, guchar *hitmap, gint w, gint h,
 		   gdouble display_scale);
 #ifdef __cplusplus
 }
