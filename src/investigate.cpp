@@ -526,6 +526,11 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
   return TRUE;
 }
 
+
+static GdkPixbuf *draw_histogram(lti::histogram1D &hist) {
+  return NULL;
+}
+
 void on_generateHistogram_clicked (GtkButton *button,
 				   gpointer user_data) {
   GtkWidget *w = glade_xml_get_widget(g_xml, "histogramWindow");
@@ -534,6 +539,8 @@ void on_generateHistogram_clicked (GtkButton *button,
   GtkIconView *view = GTK_ICON_VIEW(glade_xml_get_widget(g_xml, "searchResults"));
   GtkTreeModel *m = gtk_icon_view_get_model(view);
   GtkTextIter text_iter;
+
+  GdkPixbuf *histogram_pix;
 
   gchar *tmp_str;
 
@@ -615,6 +622,12 @@ void on_generateHistogram_clicked (GtkButton *button,
     gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
     g_free(tmp_str);
 
+    // insert graphic
+    gtk_text_buffer_insert(text, &text_iter, "\n", -1);
+    histogram_pix = draw_histogram(hist);
+    gtk_text_buffer_insert_pixbuf(text, &text_iter, histogram_pix);
+    g_object_unref(histogram_pix);
+
     gtk_text_buffer_insert(text, &text_iter, "\n\n\n", -1);
   }
 
@@ -682,5 +695,9 @@ void on_generateHistogram_clicked (GtkButton *button,
   gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
   g_free(tmp_str);
 
-  printf("\n\n");
+  // insert graphic
+  gtk_text_buffer_insert(text, &text_iter, "\n", -1);
+  histogram_pix = draw_histogram(hist);
+  gtk_text_buffer_insert_pixbuf(text, &text_iter, histogram_pix);
+  g_object_unref(histogram_pix);
 }
