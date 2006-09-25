@@ -221,6 +221,9 @@ void draw_hitmap(GList *circles, guchar *hitmap,
   cairo_t *cr = cairo_create(surface);
   cairo_surface_destroy(surface);
 
+  // disable antialiasing since we are abusing the image backend
+  cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+
   int color = 1;
 
   // clear hitmap
