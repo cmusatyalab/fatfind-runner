@@ -527,10 +527,15 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
 }
 
 
-static GdkPixbuf *draw_histogram(lti::histogram1D &hist) {
+// XXX this is a crappy histogram
+static GdkPixbuf *draw_histogram(lti::histogram1D &hist,
+				 double minR, double maxR) {
   int w = 320;
   int h = 240;
 
+  int margin = 5;
+
+  // initialize
   GdkPixbuf *result = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
   guchar *pixels = gdk_pixbuf_get_pixels(result);
   int stride = gdk_pixbuf_get_rowstride(result);
@@ -540,11 +545,46 @@ static GdkPixbuf *draw_histogram(lti::histogram1D &hist) {
   cairo_t *cr = cairo_create(surface);
   cairo_surface_destroy(surface);
 
-  g_debug("drawing histogram");
-
-  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+  // clear
+  cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
   cairo_paint(cr);
 
+  // draw frame
+  cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+  cairo_move_to(cr, margin, margin);
+  cairo_rel_line_to(cr, 0.0, h - (2 * margin));
+  cairo_rel_line_to(cr, w - (2 * margin), 0.0);
+  cairo_stroke(cr);
+
+  double maxCount = hist.at(hist.getIndexOfMaximum());
+
+  double numBins = hist.getLastCell() + 1;
+  double binWidth = (maxR - minR) / numBins;
+
+  double lineWidth = (w - ((4 + numBins) * margin)) / numBins;
+  double xAdvance = lineWidth + margin;
+  double x;
+
+  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+  cairo_set_line_width(cr, lineWidth);
+  for (int i = hist.getFirstCell(); i <= hist.getLastCell(); i++) {
+    double barHeight = ((double) hist.at(i) / (double) maxCount) *
+      (h - (4 * margin));
+
+    x += xAdvance;
+    cairo_move_to(cr, x, h - margin);
+    cairo_rel_line_to(cr, 0.0, -barHeight);
+
+    //    double low = minR + (width * i);
+    //    double high = minR + (width * (i + 1));
+
+    //    tmp_str = g_strdup_printf(" (%#g -- %#g): %5g\n", low, high, hist.at(i));
+    //    gtk_text_buffer_insert(text, &text_iter, tmp_str, -1);
+    //    g_free(tmp_str);
+  }
+  cairo_stroke(cr);
+
+  // done
   cairo_destroy(cr);
   convert_cairo_argb32_to_pixbuf(pixels, w, h, stride);
 
@@ -573,8 +613,6 @@ void on_generateHistogram_clicked (GtkButton *button,
 
   gtk_widget_show_all(w);
 
-  std::vector<double> radii;
-
   double minR = HUGE_VAL;
   double maxR = 0.0;
 
@@ -592,12 +630,13 @@ void on_generateHistogram_clicked (GtkButton *button,
   // for selected?
   if (i_pix) {
     GList *c_list = circles_list;
+    std::vector<double> radii;
 
     // do something
     while(c_list != NULL) {
       circle_type *c = (circle_type *) c_list->data;
       if (c->in_result) {
-	double r = (c->a + c->b) / 2.0;
+	double r = quadratic_mean_radius(c->a, c->b);
 	radii.push_back(r);
 	minR = MIN(r, minR);
 	maxR = MAX(r, maxR);
@@ -642,7 +681,7 @@ void on_generateHistogram_clicked (GtkButton *button,
 
     // insert graphic
     gtk_text_buffer_insert(text, &text_iter, "\n", -1);
-    histogram_pix = draw_histogram(hist);
+    histogram_pix = draw_histogram(hist, minR, maxR);
     gtk_text_buffer_insert_pixbuf(text, &text_iter, histogram_pix);
     g_object_unref(histogram_pix);
 
@@ -652,6 +691,8 @@ void on_generateHistogram_clicked (GtkButton *button,
   // for rest
   minR = HUGE_VAL;
   maxR = 0;
+
+  std::vector<double> radii;
 
   while (valid) {
     // Walk through the list, reading each row
@@ -663,14 +704,12 @@ void on_generateHistogram_clicked (GtkButton *button,
     // do something
     while(c_list != NULL) {
       circle_type *c = (circle_type *) c_list->data;
-      if (!c->in_result) {
-	continue;
+      if (c->in_result) {
+	double r = quadratic_mean_radius(c->a, c->b);
+	radii.push_back(r);
+	minR = MIN(r, minR);
+	maxR = MAX(r, maxR);
       }
-
-      double r = (c->a + c->b) / 2.0;
-      radii.push_back(r);
-      minR = MIN(r, minR);
-      maxR = MAX(r, maxR);
 
       c_list = g_list_next(c_list);
     }
@@ -715,7 +754,7 @@ void on_generateHistogram_clicked (GtkButton *button,
 
   // insert graphic
   gtk_text_buffer_insert(text, &text_iter, "\n", -1);
-  histogram_pix = draw_histogram(hist);
+  histogram_pix = draw_histogram(hist, minR, maxR);
   gtk_text_buffer_insert_pixbuf(text, &text_iter, histogram_pix);
   g_object_unref(histogram_pix);
 
