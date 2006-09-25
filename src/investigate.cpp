@@ -563,7 +563,7 @@ static GdkPixbuf *draw_histogram(lti::histogram1D &hist,
 
   double lineWidth = (w - ((4 + numBins) * margin)) / numBins;
   double xAdvance = lineWidth + margin;
-  double x;
+  double x = xAdvance / 2.0;
 
   cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
   cairo_set_line_width(cr, lineWidth);
