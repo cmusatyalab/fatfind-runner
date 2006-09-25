@@ -528,7 +528,27 @@ gboolean on_selectedResult_leave_notify_event (GtkWidget        *widget,
 
 
 static GdkPixbuf *draw_histogram(lti::histogram1D &hist) {
-  return NULL;
+  int w = 320;
+  int h = 240;
+
+  GdkPixbuf *result = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
+  guchar *pixels = gdk_pixbuf_get_pixels(result);
+  int stride = gdk_pixbuf_get_rowstride(result);
+  cairo_surface_t *surface =
+    cairo_image_surface_create_for_data(pixels, CAIRO_FORMAT_ARGB32,
+					w, h, stride);
+  cairo_t *cr = cairo_create(surface);
+  cairo_surface_destroy(surface);
+
+  g_debug("drawing histogram");
+
+  cairo_set_source_rgb(cr, 1.0, 0.0, 0.0);
+  cairo_paint(cr);
+
+  cairo_destroy(cr);
+  convert_cairo_argb32_to_pixbuf(pixels, w, h, stride);
+
+  return result;
 }
 
 void on_generateHistogram_clicked (GtkButton *button,
@@ -576,14 +596,12 @@ void on_generateHistogram_clicked (GtkButton *button,
     // do something
     while(c_list != NULL) {
       circle_type *c = (circle_type *) c_list->data;
-      if (!c->in_result) {
-	continue;
+      if (c->in_result) {
+	double r = (c->a + c->b) / 2.0;
+	radii.push_back(r);
+	minR = MIN(r, minR);
+	maxR = MAX(r, maxR);
       }
-
-      double r = (c->a + c->b) / 2.0;
-      radii.push_back(r);
-      minR = MIN(r, minR);
-      maxR = MAX(r, maxR);
 
       c_list = g_list_next(c_list);
     }
@@ -700,4 +718,6 @@ void on_generateHistogram_clicked (GtkButton *button,
   histogram_pix = draw_histogram(hist);
   gtk_text_buffer_insert_pixbuf(text, &text_iter, histogram_pix);
   g_object_unref(histogram_pix);
+
+  gtk_text_buffer_insert(text, &text_iter, "\n", -1);
 }
