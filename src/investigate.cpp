@@ -58,7 +58,7 @@ static gint y_add_current;
 static void stop_search(void) {
   if (dr != NULL) {
     printf("terminating search\n");
-    g_assert(g_source_remove(search_idle_id));
+    g_source_remove(search_idle_id);
     ls_terminate_search(dr);
     dr = NULL;
   }
