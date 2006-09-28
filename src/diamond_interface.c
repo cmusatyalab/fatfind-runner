@@ -30,6 +30,10 @@
 static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
 static gid_list_t diamond_gid_list;
 
+int total_objects;
+int processed_objects;
+int dropped_objects;
+
 static void diamond_init(void) {
   int i;
   int j;
@@ -117,6 +121,50 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 }
 
 
+static void update_stats(ls_search_handle_t dr) {
+  int num_dev;
+  ls_dev_handle_t dev_list[16];
+  int i, err, len;
+  dev_stats_t *dstats;
+  int tobj = 0, sobj = 0, dobj = 0;
+  GtkLabel *stats_label = GTK_LABEL(glade_xml_get_widget(g_xml, "statsLabel"));
+
+  guchar *tmp;
+
+  dstats = (dev_stats_t *) g_malloc(DEV_STATS_SIZE(32));
+
+  num_dev = 16;
+
+  err = ls_get_dev_list(dr, dev_list, &num_dev);
+  if (err != 0) {
+    g_error("update states: %d", err);
+  }
+
+  for (i = 0; i < num_dev; i++) {
+    len = DEV_STATS_SIZE(32);
+    g_debug("getting dev %d", i);
+
+    err = ls_get_dev_stats(dr, dev_list[i], dstats, &len);
+    if (err) {
+      g_error("Failed to get dev stats");
+    }
+    tobj += dstats->ds_objs_total;
+    sobj += dstats->ds_objs_processed;
+    dobj += dstats->ds_objs_dropped;
+  }
+  g_free(dstats);
+
+  total_objects = tobj;
+  processed_objects = sobj;
+  dropped_objects = dobj;
+  tmp =
+    g_strdup_printf("Total objects: %d, Processed objects: %d, Dropped objects: %d",
+		    total_objects, processed_objects, dropped_objects);
+  gtk_label_set_text(stats_label, tmp);
+  g_free(tmp);
+}
+
+
 gboolean diamond_result_callback(gpointer g_data) {
   // this gets 0 or 1 result from diamond and puts it into the
   // icon view
@@ -131,6 +179,8 @@ gboolean diamond_result_callback(gpointer g_data) {
   int h, origH;
   GdkPixbuf *pix, *pix2, *pix3;
 
+  static time_t last_time;
+
   int i;
 
   GList *clist = NULL;
@@ -140,14 +190,24 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   double scale, prescale;
 
-  // get handle
-  ls_search_handle_t dr = (ls_search_handle_t) g_data;
+  ls_search_handle_t dr;
 
+
+  // get handle
+  dr = (ls_search_handle_t) g_data;
+
+  // get handle
   err = ls_next_object(dr, &obj, LSEARCH_NO_BLOCK);
 
   // XXX should be able to use select()
   if (err == EWOULDBLOCK) {
     // no results right now
+    time_t now = time(NULL);
+    if (now > last_time) {
+      update_stats(dr);
+    }
+    last_time = now;
+
     return TRUE;
   } else if (err) {
     // no more results

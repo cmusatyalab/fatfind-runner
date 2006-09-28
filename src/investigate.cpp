@@ -227,6 +227,11 @@ void on_startSearch_clicked (GtkButton *button,
 
     g_debug("searching from %g to %g", r_min, r_max);
 
+    // reset stats
+    total_objects = 0;
+    processed_objects = 0;
+    dropped_objects = 0;
+
     // diamond
     dr = diamond_circle_search(r_min, r_max, max_eccentricity);
 

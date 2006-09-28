@@ -35,6 +35,9 @@ struct collection_t
   int active;
 };
 
+extern int total_objects;
+extern int processed_objects;
+extern int dropped_objects;
 
 #ifdef __cplusplus
 extern "C" {
