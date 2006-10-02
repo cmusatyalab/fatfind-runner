@@ -20,13 +20,15 @@ These are:
 
  * GTK+ >= 2.8
  * libglade2 >= 2.5.1
+ * X11 (specifically libXt)
  * ltilib (CVS)
  * Diamond (CVS)
  * SnapFind >= 1.1
 
 
-GTK+ and libglade should be available on any modern Linux system.
-Make sure you install the development packages for your system.
+GTK+ and libglade should be available on any modern Linux system,
+as well as X11. Make sure you install the development packages
+for your system, which usually end in "-devel" or "-dev".
 FatFind requires at least version 2.8 of GTK+ and version 2.5.1
 of libglade.
 
