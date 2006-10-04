@@ -232,6 +232,8 @@ void on_startSearch_clicked (GtkButton *button,
     processed_objects = 0;
     dropped_objects = 0;
 
+    displayed_objects = 0;
+
     // diamond
     dr = diamond_circle_search(r_min, r_max, max_eccentricity);
 

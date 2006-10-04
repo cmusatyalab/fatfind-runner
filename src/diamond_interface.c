@@ -34,6 +34,8 @@ int total_objects;
 int processed_objects;
 int dropped_objects;
 
+int displayed_objects;
+
 static void diamond_init(void) {
   int i;
   int j;
@@ -137,12 +139,11 @@ static void update_stats(ls_search_handle_t dr) {
 
   err = ls_get_dev_list(dr, dev_list, &num_dev);
   if (err != 0) {
-    g_error("update states: %d", err);
+    g_error("update stats: %d", err);
   }
 
   for (i = 0; i < num_dev; i++) {
     len = DEV_STATS_SIZE(32);
-    g_debug("getting dev %d", i);
 
     err = ls_get_dev_stats(dr, dev_list[i], dstats, &len);
     if (err) {
@@ -158,8 +159,8 @@ static void update_stats(ls_search_handle_t dr) {
   processed_objects = sobj;
   dropped_objects = dobj;
   tmp =
-    g_strdup_printf("Total objects: %d, Processed objects: %d, Dropped objects: %d",
-		    total_objects, processed_objects, dropped_objects);
+    g_strdup_printf("Total objects: %d, Processed objects: %d, Dropped objects: %d, Displayed objects: %d",
+		    total_objects, processed_objects, dropped_objects, displayed_objects);
   gtk_label_set_text(stats_label, tmp);
   g_free(tmp);
 }
@@ -209,21 +210,26 @@ gboolean diamond_result_callback(gpointer g_data) {
     last_time = now;
 
     return TRUE;
-  } else if (err) {
+  } else if (err || (displayed_objects > 100)) {
     // no more results
     GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
     GtkWidget *startSearch = glade_xml_get_widget(g_xml, "startSearch");
     gtk_widget_set_sensitive(stopSearch, FALSE);
     gtk_widget_set_sensitive(startSearch, TRUE);
 
+    update_stats(dr);
+
     ls_abort_search(dr);
     return FALSE;
   }
 
+  // more results
   printf("got object: %p\n", obj);
 
   err = lf_ref_attr(obj, "circle-data", &len, (unsigned char **) &data);
   g_assert(!err);
+
+  displayed_objects++;
 
   // XXX
   for (i = 0; i < len / sizeof(circle_type); i++) {

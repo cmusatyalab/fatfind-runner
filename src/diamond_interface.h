@@ -38,6 +38,7 @@ struct collection_t
 extern int total_objects;
 extern int processed_objects;
 extern int dropped_objects;
+extern int displayed_objects;
 
 #ifdef __cplusplus
 extern "C" {
