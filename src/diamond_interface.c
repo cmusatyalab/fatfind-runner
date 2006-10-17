@@ -36,17 +36,23 @@ int dropped_objects;
 
 int displayed_objects;
 
-static void diamond_init(void) {
+static GSList collection_menu_group;
+
+void diamond_init(void) {
   int i;
   int j;
   int err;
   void *cookie;
   char *name;
 
+  GtkMenu *menu;
+
   if (diamond_gid_list.num_gids != 0) {
     // already initialized
     return;
   }
+
+  menu = GTK_MENU(glade_xml_get_widget(g_xml, "scopeMenu"));
 
   printf("reading collections...\n");
   {
@@ -84,8 +90,6 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   int err;
 
   char buf[1];
-
-  diamond_init();
 
   diamond_handle = ls_init_search();
 

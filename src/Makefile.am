@@ -22,6 +22,6 @@ fatfind_SOURCES = \
 	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
 
-fatfind_LDADD = @glade_LIBS@ 
+fatfind_LDADD = @glade_LIBS@
 
 fatfind_LDFLAGS = -export-dynamic

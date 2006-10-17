@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "fatfind.h"
+#include "diamond_interface.h"
 
 static void setup_saved_search_store(void) {
   GtkTreeView *v = GTK_TREE_VIEW(glade_xml_get_widget(g_xml,
@@ -165,7 +166,8 @@ main (int argc, char *argv[])
   // init results
   setup_results_store(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
 							 "searchResults")));
-
+  // init diamond
+  diamond_init();
 
   gtk_widget_show_all(fatfind);
 
