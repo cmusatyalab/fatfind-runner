@@ -36,39 +36,13 @@ int dropped_objects;
 
 int displayed_objects;
 
-static GSList collection_menu_group;
+static GSList *collection_menu_group;
 
-void diamond_init(void) {
-  int i;
-  int j;
-  int err;
-  void *cookie;
-  char *name;
+static void update_gids(void) {
+  int i, j;
 
-  GtkMenu *menu;
-
-  if (diamond_gid_list.num_gids != 0) {
-    // already initialized
-    return;
-  }
-
-  menu = GTK_MENU(glade_xml_get_widget(g_xml, "scopeMenu"));
-
-  printf("reading collections...\n");
-  {
-    int pos = 0;
-    err = nlkup_first_entry(&name, &cookie);
-    while(!err && pos < MAX_ALBUMS)
-      {
-	collections[pos].name = name;
-	collections[pos].active = pos ? 0 : 1; /* first one active */
-	pos++;
-	err = nlkup_next_entry(&name, &cookie);
-      }
-    collections[pos].name = NULL;
-  }
-
-
+  // clear
+  diamond_gid_list.num_gids = 0;
   for (i=0; i<MAX_ALBUMS && collections[i].name; i++) {
     if (collections[i].active) {
       int err;
@@ -77,10 +51,78 @@ void diamond_init(void) {
       err = nlkup_lookup_collection(collections[i].name, &num_gids, gids);
       g_assert(!err);
       for (j=0; j < num_gids; j++) {
-	printf("adding gid: %lld\n", gids[j]);
+	printf("adding gid: %lld for collection %s\n", gids[j], collections[i].name);
 	diamond_gid_list.gids[diamond_gid_list.num_gids++] = gids[j];
       }
     }
+  }
+}
+
+static void scope_menu_item_activated(GtkMenuItem *menuitem, gpointer user_data) {
+  GtkCheckMenuItem *m = GTK_CHECK_MENU_ITEM(menuitem);
+  int length = g_slist_length(collection_menu_group);
+  int position = (length - 1) - g_slist_index(collection_menu_group, m);
+
+  // update active
+  collections[position].active = m->active;
+  if (m->active) {
+    g_debug("collection %d (%s) added", position, collections[position].name);
+  } else {
+    g_debug("collection %d (%s) removed", position, collections[position].name);
+  }
+  update_gids();
+}
+
+
+void diamond_init(void) {
+  int i;
+  int j;
+  int err;
+  void *cookie;
+  char *name;
+
+  GtkMenuShell *menu;
+  GtkMenuItem *scopeMenu;
+
+  static gboolean initialized;
+
+  if (initialized) {
+    // already initialized
+    return;
+  }
+  initialized = TRUE;
+
+  scopeMenu = GTK_MENU_ITEM(glade_xml_get_widget(g_xml, "scopeMenu"));
+  menu = GTK_MENU_SHELL(gtk_menu_new());
+  gtk_menu_item_set_submenu(scopeMenu, GTK_WIDGET(menu));
+
+  printf("reading collections...\n");
+  {
+    int pos = 0;
+    GtkWidget *mi = NULL;
+
+    err = nlkup_first_entry(&name, &cookie);
+    while(!err && pos < MAX_ALBUMS) {
+
+      collections[pos].name = name;
+      mi = gtk_radio_menu_item_new_with_label(collection_menu_group,
+					      name);
+      collection_menu_group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(mi));
+      gtk_menu_shell_prepend(menu, mi);
+      collections[pos].active = 0;
+
+      g_signal_connect(mi, "activate", G_CALLBACK(scope_menu_item_activated),
+		       NULL);
+      pos++;
+      err = nlkup_next_entry(&name, &cookie);
+    }
+
+    if (mi != NULL) {
+      // set the last (first) item active
+      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi),
+				     TRUE);
+    }
+    collections[pos].name = NULL;
   }
 }
 
@@ -93,7 +135,8 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 
   diamond_handle = ls_init_search();
 
-  err = ls_set_searchlist(diamond_handle, 1, diamond_gid_list.gids);
+  err = ls_set_searchlist(diamond_handle, diamond_gid_list.num_gids,
+			  diamond_gid_list.gids);
   g_assert(!err);
 
   // append our stuff
