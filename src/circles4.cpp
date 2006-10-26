@@ -64,7 +64,7 @@ static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
 		     double minSharpness) {
   // params
   lti::cannyEdges::parameters cannyParam;
-  cannyParam.thresholdMax = 0.10;
+  cannyParam.thresholdMax = 0.10 + 0.90 * ((minSharpness - 1) / 4.0);
   cannyParam.thresholdMin = 0.04;
   cannyParam.kernelSize = 7;
 

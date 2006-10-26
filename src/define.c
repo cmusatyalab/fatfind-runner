@@ -209,5 +209,5 @@ void on_recomputePreview_clicked (GtkButton *button,
   current_sharpness = min_sharpness;
   gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
 			   FALSE);
-  gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedImage"));
+  gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "simulatedSearch"));
 }
