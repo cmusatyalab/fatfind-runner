@@ -33,7 +33,7 @@ extern "C" {
 #endif
   void circlesFromImage(const int width, const int height, const int stride,
 			const int bytesPerPixel,
-			void *data);
+			void *data, double minSharpness);
 #ifdef __cplusplus
 }
 #endif

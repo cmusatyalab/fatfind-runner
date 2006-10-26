@@ -32,6 +32,7 @@ typedef struct {
   double minRadius;
   double maxRadius;
   double maxEccentricity;
+  double minSharpness;
 } circles_state_t;
 
 
@@ -59,7 +60,8 @@ static gint circle_radius_compare(gconstpointer a,
 
 
 static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
-		     std::vector<lti::channel8*> &edges) {
+		     std::vector<lti::channel8*> &edges,
+		     double minSharpness) {
   // params
   lti::cannyEdges::parameters cannyParam;
   cannyParam.thresholdMax = 0.10;
@@ -143,7 +145,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
   return result;
 }
 
-static circles_state_t staticState = {-1, -1, 0.4};
+static circles_state_t staticState = {-1, -1, 0.4, 1};
 static GList *circlesFromImage2(circles_state_t *ct,
 				const int width, const int height,
 				const int stride, const int bytesPerPixel,
@@ -168,7 +170,7 @@ static GList *circlesFromImage2(circles_state_t *ct,
   std::vector<lti::channel8*> edges;
 
   // run
-  do_canny(imgPyramid, edges);
+  do_canny(imgPyramid, edges, ct->minSharpness);
   GList *result = do_fee(edges, ct);
 
   // clear vector
@@ -233,8 +235,10 @@ static GList *circlesFromImage2(circles_state_t *ct,
 // called from GUI
 void circlesFromImage(const int width, const int height,
 		      const int stride, const int bytesPerPixel,
-		      void *data) {
-  circles = circlesFromImage2(&staticState, width,
+		      void *data, double minSharpness) {
+  circles_state_t cs = staticState;
+  cs.minSharpness = minSharpness;
+  circles = circlesFromImage2(&cs, width,
 			      height, stride, bytesPerPixel, data);
 }
 
@@ -250,7 +254,7 @@ extern "C" {
     circles_state_t *cr;
 
     // check parameters
-    if (num_arg != 3) {
+    if (num_arg != 4) {
       return -1;
     }
 
@@ -260,6 +264,7 @@ extern "C" {
     cr->minRadius = g_ascii_strtod(args[0], NULL);
     cr->maxRadius = g_ascii_strtod(args[1], NULL);
     cr->maxEccentricity = g_ascii_strtod(args[2], NULL);
+    cr->minSharpness = g_ascii_strtod(args[3], NULL);
 
     // we're good
     *filter_args = cr;

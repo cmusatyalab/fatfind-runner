@@ -260,7 +260,8 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 		   gdk_pixbuf_get_height(c_pix),
 		   gdk_pixbuf_get_rowstride(c_pix),
 		   gdk_pixbuf_get_n_channels(c_pix),
-		   gdk_pixbuf_get_pixels(c_pix));
+		   gdk_pixbuf_get_pixels(c_pix),
+		   1);
   //    circles = g_list_prepend(circles, c);
 
   //g_debug("c_pix: %p", c_pix);

@@ -29,6 +29,8 @@ GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
 static float scale;
 
+static gdouble current_sharpness;
+
 static gboolean circle_match(circle_type *c) {
   gdouble r_min;
   gdouble r_max;
@@ -64,6 +66,17 @@ static gboolean circle_match(circle_type *c) {
 }
 
 
+static void reset_sharpness(void) {
+  // set to 1
+  current_sharpness = 1;
+  gtk_range_set_value(GTK_RANGE(glade_xml_get_widget(g_xml,
+						     "minSharpness")),
+		      current_sharpness);
+  gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
+			   FALSE);
+}
+
+
 void draw_define_offscreen_items(gint a_w, gint a_h) {
     // clear old scaled pix
   if (c_pix_scaled != NULL) {
@@ -71,7 +84,10 @@ void draw_define_offscreen_items(gint a_w, gint a_h) {
     c_pix_scaled = NULL;
   }
 
-    // if something selected?
+  // reset sharpness
+  reset_sharpness();
+
+  // if something selected?
   if (c_pix) {
     float p_aspect =
       (float) gdk_pixbuf_get_width(c_pix) /
@@ -148,6 +164,8 @@ void on_saveSearchButton_clicked (GtkButton *button,
   gdouble r_max = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml, "radiusUpper")));
   gdouble max_eccentricity = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml,
 										"maxEccentricity")));
+  gdouble min_sharpness = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml,
+									     "minSharpness")));
 
   if (reference_circle_object == NULL) {
     return;
@@ -166,5 +184,30 @@ void on_saveSearchButton_clicked (GtkButton *button,
 		     1, r_min,
 		     2, r_max,
 		     3, max_eccentricity,
+		     4, min_sharpness,
 		     -1);
+}
+
+void on_minSharpness_value_changed (GtkRange *range,
+				   gpointer  user_data) {
+  gdouble val = gtk_range_get_value(range);
+  gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
+			   current_sharpness != val);
+}
+
+void on_recomputePreview_clicked (GtkButton *button,
+				  gpointer   user_data) {
+  gdouble min_sharpness = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml,
+									     "minSharpness")));
+  // XXX shouldn't alter global circles list?
+  circlesFromImage(gdk_pixbuf_get_width(c_pix),
+		   gdk_pixbuf_get_height(c_pix),
+		   gdk_pixbuf_get_rowstride(c_pix),
+		   gdk_pixbuf_get_n_channels(c_pix),
+		   gdk_pixbuf_get_pixels(c_pix),
+		   min_sharpness);
+  current_sharpness = min_sharpness;
+  gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
+			   FALSE);
+  gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "selectedImage"));
 }

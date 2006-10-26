@@ -119,6 +119,7 @@ void diamond_init(void) {
 
     if (mi != NULL) {
       // set the last (first) item active
+      collections[pos-1].active = 1;
       gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi),
 				     TRUE);
     }
@@ -351,7 +352,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
 
 ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
-					 double maxEccentricity) {
+					 double maxEccentricity, double minSharpness) {
   ls_search_handle_t dr;
   int fd;
   FILE *f;
@@ -374,9 +375,10 @@ ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
 	  "ARG  %1.20e\n"
 	  "ARG  %1.20e\n"
 	  "ARG  %1.20e\n"
+	  "ARG  %1.20e\n"
 	  "REQUIRES  RGB # dependencies\n"
 	  "MERIT  50 # some relative cost\n",
-	  minRadius, maxRadius, maxEccentricity);
+	  minRadius, maxRadius, maxEccentricity, minSharpness);
   fflush(f);
 
   // initialize with generic search

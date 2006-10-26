@@ -214,6 +214,7 @@ void on_startSearch_clicked (GtkButton *button,
     gdouble r_min;
     gdouble r_max;
     gdouble max_eccentricity;
+    gdouble min_sharpness;
     GtkWidget *stopSearch = glade_xml_get_widget(g_xml, "stopSearch");
 
 
@@ -223,6 +224,7 @@ void on_startSearch_clicked (GtkButton *button,
 		       1, &r_min,
 		       2, &r_max,
 		       3, &max_eccentricity,
+		       4, &min_sharpness,
 		       -1);
 
     g_debug("searching from %g to %g", r_min, r_max);
@@ -235,7 +237,9 @@ void on_startSearch_clicked (GtkButton *button,
     displayed_objects = 0;
 
     // diamond
-    dr = diamond_circle_search(r_min, r_max, max_eccentricity);
+    dr = diamond_circle_search(r_min, r_max,
+			       max_eccentricity,
+			       min_sharpness);
 
     // take the handle, put it into the idle callback to get
     // the results?
