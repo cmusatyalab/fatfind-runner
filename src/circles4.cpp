@@ -25,8 +25,6 @@
 #include "lib_filter.h"
 #include "util.h"
 
-GList *circles;   // for gui only, not filter
-
 
 typedef struct {
   double minRadius;
@@ -233,13 +231,13 @@ static GList *circlesFromImage2(circles_state_t *ct,
 
 
 // called from GUI
-void circlesFromImage(const int width, const int height,
-		      const int stride, const int bytesPerPixel,
-		      void *data, double minSharpness) {
+GList *circlesFromImage(const int width, const int height,
+			const int stride, const int bytesPerPixel,
+			void *data, double minSharpness) {
   circles_state_t cs = staticState;
   cs.minSharpness = minSharpness;
-  circles = circlesFromImage2(&cs, width,
-			      height, stride, bytesPerPixel, data);
+  return circlesFromImage2(&cs, width,
+			   height, stride, bytesPerPixel, data);
 }
 
 

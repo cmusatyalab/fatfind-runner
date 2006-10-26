@@ -32,6 +32,8 @@
 #include "circles4.h"
 
 
+static GList *calibration_circles;
+
 GdkPixbuf *c_pix;
 static GdkPixbuf *c_pix_scaled;
 
@@ -89,7 +91,7 @@ static void draw_calibrate_offscreen_items(gint allocation_width,
 
 
     hitmap = g_malloc(w * h * 4);
-    draw_hitmap(circles, hitmap, w, h, scale);
+    draw_hitmap(calibration_circles, hitmap, w, h, scale);
   }
 }
 
@@ -126,7 +128,7 @@ static void set_reference_circle(guint32 c) {
   } else {
     // set image
     circle_type *circ = (circle_type *)
-      (g_list_nth(circles, reference_circle))->data;
+      (g_list_nth(calibration_circles, reference_circle))->data;
 
     float extra = 1.2;
     float r = quadratic_mean_radius(circ->a, circ->b);
@@ -154,7 +156,7 @@ static void set_reference_circle(guint32 c) {
     double this_scale;
 
     // set object
-    reference_circle_object = (g_list_nth(circles, reference_circle))->data;
+    reference_circle_object = (g_list_nth(calibration_circles, reference_circle))->data;
 
     // draw
     if (x < 0) {
@@ -241,11 +243,11 @@ static void foreach_select_calibration(GtkIconView *icon_view,
     g_object_unref(c_pix);
   }
 
-  if (circles != NULL) {
+  if (calibration_circles != NULL) {
     // clear
-    g_list_foreach(circles, list_deleter, NULL);
-    g_list_free(circles);
-    circles = NULL;
+    g_list_foreach(calibration_circles, list_deleter, NULL);
+    g_list_free(calibration_circles);
+    calibration_circles = NULL;
   }
 
 
@@ -256,12 +258,12 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   }
 
   // compute the circles
-  circlesFromImage(gdk_pixbuf_get_width(c_pix),
-		   gdk_pixbuf_get_height(c_pix),
-		   gdk_pixbuf_get_rowstride(c_pix),
-		   gdk_pixbuf_get_n_channels(c_pix),
-		   gdk_pixbuf_get_pixels(c_pix),
-		   1);
+  calibration_circles = circlesFromImage(gdk_pixbuf_get_width(c_pix),
+					 gdk_pixbuf_get_height(c_pix),
+					 gdk_pixbuf_get_rowstride(c_pix),
+					 gdk_pixbuf_get_n_channels(c_pix),
+					 gdk_pixbuf_get_pixels(c_pix),
+					 1);
   //    circles = g_list_prepend(circles, c);
 
   //g_debug("c_pix: %p", c_pix);
@@ -293,7 +295,7 @@ gboolean on_selectedImage_expose_event (GtkWidget *d,
 
     // draw circles
     if (show_circles) {
-      draw_circles_into_widget(d, circles, scale, filter_by_in_result);
+      draw_circles_into_widget(d, calibration_circles, scale, filter_by_in_result);
     }
   }
   return TRUE;

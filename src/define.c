@@ -25,6 +25,8 @@
 #include "util.h"
 #include "drawutil.h"
 
+GList *simulated_circles;
+
 GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
 static float scale;
@@ -126,7 +128,7 @@ gboolean on_simulatedSearch_expose_event (GtkWidget *d,
     gint w = gdk_pixbuf_get_width(c_pix_scaled);
     gint h = gdk_pixbuf_get_height(c_pix_scaled);
 
-    GList *l = circles;
+    GList *l = simulated_circles;
 
     // draw the background
     gdk_cairo_set_source_pixbuf(cr, c_pix_scaled, 0.0, 0.0);

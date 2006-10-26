@@ -17,8 +17,6 @@
 
 #include <glib.h>
 
-extern GList *circles;
-
 typedef struct {
   float x;
   float y;
@@ -31,9 +29,9 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void circlesFromImage(const int width, const int height, const int stride,
-			const int bytesPerPixel,
-			void *data, double minSharpness);
+  GList *circlesFromImage(const int width, const int height, const int stride,
+			  const int bytesPerPixel,
+			  void *data, double minSharpness);
 #ifdef __cplusplus
 }
 #endif
