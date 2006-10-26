@@ -25,13 +25,17 @@
 #include "util.h"
 #include "drawutil.h"
 
-GList *simulated_circles;
+static GList *simulated_circles;
 
 GtkListStore *saved_search_store;
 static GdkPixbuf *c_pix_scaled;
 static float scale;
 
 static gdouble current_sharpness;
+
+static void list_deleter(gpointer data, gpointer user_data) {
+  g_free(data);
+}
 
 static gboolean circle_match(circle_type *c) {
   gdouble r_min;
@@ -68,7 +72,7 @@ static gboolean circle_match(circle_type *c) {
 }
 
 
-static void reset_sharpness(void) {
+void reset_sharpness(void) {
   // set to 1
   current_sharpness = 1;
   gtk_range_set_value(GTK_RANGE(glade_xml_get_widget(g_xml,
@@ -76,6 +80,31 @@ static void reset_sharpness(void) {
 		      current_sharpness);
   gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
 			   FALSE);
+}
+
+
+void copy_to_simulated_circles(GList *circles) {
+  GList *src;
+  GList *dst = NULL;
+
+  if (simulated_circles != NULL) {
+    // clear
+    g_list_foreach(simulated_circles, list_deleter, NULL);
+    g_list_free(simulated_circles);
+    simulated_circles = NULL;
+  }
+
+  // copy
+  src = circles;
+  while (src != NULL) {
+    circle_type *c = g_malloc(sizeof(circle_type));
+    *c = *((circle_type *) src->data);
+
+    dst = g_list_prepend(dst, c);
+
+    src = g_list_next(src);
+  }
+  simulated_circles = g_list_reverse(dst);
 }
 
 
@@ -201,13 +230,18 @@ void on_recomputePreview_clicked (GtkButton *button,
 				  gpointer   user_data) {
   gdouble min_sharpness = gtk_range_get_value(GTK_RANGE(glade_xml_get_widget(g_xml,
 									     "minSharpness")));
-  // XXX shouldn't alter global circles list?
-  circlesFromImage(gdk_pixbuf_get_width(c_pix),
-		   gdk_pixbuf_get_height(c_pix),
-		   gdk_pixbuf_get_rowstride(c_pix),
-		   gdk_pixbuf_get_n_channels(c_pix),
-		   gdk_pixbuf_get_pixels(c_pix),
-		   min_sharpness);
+  // clear
+  g_list_foreach(simulated_circles, list_deleter, NULL);
+  g_list_free(simulated_circles);
+  simulated_circles = NULL;
+
+  // find
+  simulated_circles = circlesFromImage(gdk_pixbuf_get_width(c_pix),
+				       gdk_pixbuf_get_height(c_pix),
+				       gdk_pixbuf_get_rowstride(c_pix),
+				       gdk_pixbuf_get_n_channels(c_pix),
+				       gdk_pixbuf_get_pixels(c_pix),
+				       min_sharpness);
   current_sharpness = min_sharpness;
   gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
 			   FALSE);

@@ -309,13 +309,21 @@ void on_calibrationImages_selection_changed (GtkIconView *view,
   // reset reference image
   set_reference_circle(-1);
 
-  // load the image
+  // load the image, find circles
   gtk_icon_view_selected_foreach(view, foreach_select_calibration, NULL);
 
-  // draw the offscreen items
+  // draw the offscreen items for us
   w = glade_xml_get_widget(g_xml, "selectedImage");
   draw_calibrate_offscreen_items(w->allocation.width,
 				 w->allocation.height);
+
+  // reset simulated search sharpness
+  reset_sharpness();
+
+  // give circles to simulated search
+  copy_to_simulated_circles(calibration_circles);
+
+  // draw the simulated search
   w2 = glade_xml_get_widget(g_xml, "simulatedSearch");
   draw_define_offscreen_items(w2->allocation.width,
 			      w2->allocation.height);

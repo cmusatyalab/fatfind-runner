@@ -62,7 +62,11 @@ static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
 		     double minSharpness) {
   // params
   lti::cannyEdges::parameters cannyParam;
-  cannyParam.thresholdMax = 0.10 + 0.90 * ((minSharpness - 1) / 4.0);
+  if (minSharpness == 0) {
+    cannyParam.thresholdMax = 0.04;
+  } else {
+    cannyParam.thresholdMax = 0.10 + 0.90 * ((minSharpness - 1) / 4.0);
+  }
   cannyParam.thresholdMin = 0.04;
   cannyParam.kernelSize = 7;
 
@@ -116,6 +120,13 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
 
       // compute eccentricity
       float e = compute_eccentricity(a, b);
+
+      // if over 0.9, drop completely
+      if (e > 0.9) {
+	continue;
+      }
+
+      // otherwise, maybe mark
       if (e > ct->maxEccentricity) {
 	in_result = FALSE;
       }

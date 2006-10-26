@@ -17,9 +17,9 @@
 
 #include <gtk/gtk.h>
 
-extern GList *simulated_circles;
-
 void draw_define_offscreen_items (gint width, gint height);
+void reset_sharpness(void);
+void copy_to_simulated_circles(GList *circles);
 
 gboolean on_simulatedSearch_expose_event (GtkWidget *d,
 					  GdkEventExpose *event,
