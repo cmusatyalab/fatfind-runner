@@ -25,6 +25,9 @@
 #include "lib_filter.h"
 #include "util.h"
 
+#include <sys/time.h>
+#include <time.h>
+
 
 typedef struct {
   double minRadius;
@@ -60,6 +63,14 @@ static gint circle_radius_compare(gconstpointer a,
 static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
 		     std::vector<lti::channel8*> &edges,
 		     double minSharpness) {
+  uint64_t start_time_in_ms;
+  uint64_t end_time_in_ms;
+
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+  start_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
   // params
   lti::cannyEdges::parameters cannyParam;
   if (minSharpness == 0) {
@@ -81,11 +92,23 @@ static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
     canny.apply(imgPyramid[i], *c8);
     edges.push_back(c8);
   }
+
+  gettimeofday(&tv, NULL);
+  end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  printf("canny done in %lld ms\n", end_time_in_ms - start_time_in_ms);
 }
 
 static GList *do_fee(std::vector<lti::channel8*> &edges,
 		     circles_state_t *ct) {
   GList *result = NULL;
+
+  uint64_t start_time_in_ms;
+  uint64_t end_time_in_ms;
+
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+  start_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
   // create FEE functor
   lti::fastEllipseExtraction::parameters feeParam;
@@ -151,6 +174,10 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
     }
   }
 
+  gettimeofday(&tv, NULL);
+  end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  printf("fee done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+
   return result;
 }
 
@@ -159,6 +186,14 @@ static GList *circlesFromImage2(circles_state_t *ct,
 				const int width, const int height,
 				const int stride, const int bytesPerPixel,
 				void *data) {
+  uint64_t start_time_in_ms;
+  uint64_t end_time_in_ms;
+
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+  start_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
   // load image
   g_assert(bytesPerPixel >= 3);
   lti::image img(false, height, width);
@@ -175,6 +210,10 @@ static GList *circlesFromImage2(circles_state_t *ct,
   lti::gaussianPyramid<lti::image> imgPyramid(levels);
   imgPyramid.generate(img);
 
+  gettimeofday(&tv, NULL);
+  end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  printf("load/pyramid done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+
   // make vector
   std::vector<lti::channel8*> edges;
 
@@ -188,9 +227,12 @@ static GList *circlesFromImage2(circles_state_t *ct,
     edges[i] = NULL;
   }
 
-  // overlap supression
-  printf("overlap supression ");
+  // overlap suppression
+  printf("overlap suppression ");
   fflush(stdout);
+
+  gettimeofday(&tv, NULL);
+  start_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 
   result = g_list_sort(result, circle_radius_compare);  // sort
 
@@ -236,6 +278,10 @@ static GList *circlesFromImage2(circles_state_t *ct,
     fflush(stdout);
   }
   printf("\n");
+
+  gettimeofday(&tv, NULL);
+  end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+  printf("overlap suppression done in %lld ms\n", end_time_in_ms - start_time_in_ms);
 
   return result;
 }
