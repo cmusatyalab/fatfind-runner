@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
+#include <unistd.h>
 
 #include "lib_filter.h"
 #include "lib_dconfig.h"
@@ -134,6 +135,8 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 
   char buf[1];
 
+  char *rgb_filter_name;
+
   diamond_handle = ls_init_search();
 
   err = ls_set_searchlist(diamond_handle, diamond_gid_list.num_gids,
@@ -161,8 +164,18 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   close(f1);
   close(f2);
 
+  // check for snapfind filter
+  if (access("/opt/snapfind/lib/fil_rgb.a", F_OK) == 0) {
+    rgb_filter_name = "/opt/snapfind/lib/fil_rgb.a";
+  } else if (access("/usr/local/diamond/lib/fil_rgb.a", F_OK) == 0) {
+    rgb_filter_name = "/usr/local/diamond/lib/fil_rgb.a";
+  } else {
+    // old way
+    rgb_filter_name = FATFIND_FILTERDIR "/fil_rgb.so";
+  }
+
   err = ls_set_searchlet(diamond_handle, DEV_ISA_IA32,
-			 FATFIND_FILTERDIR "/fil_rgb.so",
+			 rgb_filter_name,
 			 filter_spec_name);
   g_assert(!err);
 
