@@ -233,6 +233,10 @@ static void foreach_select_calibration(GtkIconView *icon_view,
   GtkTreeModel *m = gtk_icon_view_get_model(icon_view);
   GtkWidget *w;
 
+  GdkCursor *cursor;
+  GdkDisplay *display;
+  GdkWindow *toplevel_window;
+
   FILE *f;
 
   gtk_tree_model_get_iter(m, &iter, path);
@@ -257,6 +261,15 @@ static void foreach_select_calibration(GtkIconView *icon_view,
     g_error_free(err);
   }
 
+  // busy cursor
+  display = gtk_widget_get_display(GTK_WIDGET(icon_view));
+  cursor = gdk_cursor_new_for_display(display, GDK_WATCH);
+  toplevel_window = gtk_widget_get_toplevel(GTK_WIDGET(icon_view))->window;
+  gdk_window_set_cursor(toplevel_window, cursor);
+  gdk_cursor_unref(cursor);
+  cursor = NULL;
+  gdk_display_flush(display);
+
   // compute the circles
   calibration_circles = circlesFromImage(gdk_pixbuf_get_width(c_pix),
 					 gdk_pixbuf_get_height(c_pix),
@@ -264,6 +277,7 @@ static void foreach_select_calibration(GtkIconView *icon_view,
 					 gdk_pixbuf_get_n_channels(c_pix),
 					 gdk_pixbuf_get_pixels(c_pix),
 					 1);
+  gdk_window_set_cursor(toplevel_window, NULL);
   //    circles = g_list_prepend(circles, c);
 
   //g_debug("c_pix: %p", c_pix);

@@ -19,6 +19,7 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "fatfind.h"
 #include "define.h"
@@ -217,6 +218,9 @@ void on_saveSearchButton_clicked (GtkButton *button,
 		     3, max_eccentricity,
 		     4, min_sharpness,
 		     -1);
+
+  // don't allow double click
+  gtk_widget_set_sensitive(GTK_WIDGET(button), FALSE);
 }
 
 void on_minSharpness_value_changed (GtkRange *range,
@@ -246,4 +250,16 @@ void on_recomputePreview_clicked (GtkButton *button,
   gtk_widget_set_sensitive(glade_xml_get_widget(g_xml, "recomputePreview"),
 			   FALSE);
   gtk_widget_queue_draw(glade_xml_get_widget(g_xml, "simulatedSearch"));
+}
+
+void on_searchName_changed (GtkEditable *editable,
+			    gpointer     user_data) {
+  // change the sensitivity of the save as button, to allow clicking
+  // only when the user has changed to non-empty string
+  gchar *text = gtk_editable_get_chars(editable, 0, -1);
+  gboolean empty = (strlen(text) == 0);
+  g_free(text);
+
+  gtk_widget_set_sensitive(GTK_WIDGET(glade_xml_get_widget(g_xml, "saveSearchButton")),
+			   !empty);
 }

@@ -40,4 +40,7 @@ void on_minSharpnessvalue_changed (GtkRange *range,
 
 void on_recomputePreview_clicked (GtkButton *button,
 				  gpointer   user_data);
+
+void on_searchName_changed (GtkEditable *editable,
+			    gpointer     user_data);
 #endif
