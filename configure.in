@@ -25,8 +25,8 @@ AC_SUBST(LIBS, "`lti-config nogtk --libs` -lpthread -lm -lsearchlet -lfilterexec
 
 
 # XXX should use pkg-config
-AC_SUBST(LDFLAGS, "-L/opt/diamond/lib -L/usr/local/diamond/lib")
-AC_SUBST(CPPFLAGS, "-Werror-implicit-function-declaration -I/opt/diamond/include -I/usr/local/diamond/include `lti-config nogtk --cxxflags`")
+AC_SUBST(LDFLAGS, "${LDFLAGS} -L/opt/diamond/lib -L/usr/local/diamond/lib")
+AC_SUBST(CPPFLAGS, "${CPPFLAGS} -Werror-implicit-function-declaration -I/opt/diamond/include -I/usr/local/diamond/include `lti-config nogtk --cxxflags`")
 
 # XXX should work on more than 1 arch
 AC_SUBST(CFLAGS, "-m32")
