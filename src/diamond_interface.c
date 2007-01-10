@@ -123,6 +123,9 @@ void diamond_init(void) {
       collections[pos-1].active = 1;
       gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(mi),
 				     TRUE);
+
+      // work in the case of just 1 item (slightly hacky)
+      scope_menu_item_activated(GTK_MENU_ITEM(mi), NULL);
     }
     collections[pos].name = NULL;
   }
