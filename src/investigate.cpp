@@ -243,7 +243,7 @@ void on_startSearch_clicked (GtkButton *button,
 
     // take the handle, put it into the idle callback to get
     // the results?
-    search_idle_id = g_idle_add(diamond_result_callback, dr);
+    search_idle_id = g_timeout_add(100, diamond_result_callback, dr);
 
     // activate the stop search button
     gtk_widget_set_sensitive(stopSearch, TRUE);
