@@ -1,7 +1,7 @@
 /*
  * FatFind: A Diamond application for adipocyte image exploration
  *
- * Copyright (c) 2006 Carnegie Mellon University. All rights reserved.
+ * Copyright (c) 2006-2007 Carnegie Mellon University. All rights reserved.
  * Additional copyrights may be listed below.
  *
  * This program and the accompanying materials are made available under
@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <unistd.h>
 
 #include "lib_filter.h"
@@ -242,6 +243,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   int err;
   int w, origW;
   int h, origH;
+  GdkPixbufLoader *pix_loader;
   GdkPixbuf *pix, *pix2, *pix3;
 
   static time_t last_time;
@@ -309,21 +311,19 @@ gboolean diamond_result_callback(gpointer g_data) {
   title = make_thumbnail_title(clist);
 
   // thumbnail
-  err = lf_ref_attr(obj, "_cols.int", &len, (unsigned char **) &data);
-  g_assert(!err);
-  origW = w = *((int *) data);
-
-  err = lf_ref_attr(obj, "_rows.int", &len, (unsigned char **) &data);
-  g_assert(!err);
-  origH = h = *((int *) data);
-
-  err = lf_ref_attr(obj, "_rgb_image.rgbimage", &len, (unsigned char **) &data);
+  err = lf_next_block(obj, INT_MAX, &len, (unsigned char **) &data);
   g_assert(!err);
 
-  printf(" img %dx%d (%d bytes)\n", w, h, len);
+  pix_loader = gdk_pixbuf_loader_new();
+  g_assert(gdk_pixbuf_loader_write(pix_loader, data, len, NULL));
+  g_assert(gdk_pixbuf_loader_close(pix_loader, NULL));
+  pix = g_object_ref(gdk_pixbuf_loader_get_pixbuf(pix_loader));
+  g_object_unref(pix_loader);
+  pix_loader = NULL;
 
-  pix = gdk_pixbuf_new_from_data(data, GDK_COLORSPACE_RGB,
-				 TRUE, 8, w, h, w*4, NULL, NULL);
+  origW = w = gdk_pixbuf_get_width(pix);
+  origH = h = gdk_pixbuf_get_height(pix);
+
   compute_thumbnail_scale(&scale, &w, &h);
 
   // draw into thumbnail

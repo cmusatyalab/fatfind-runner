@@ -1,7 +1,7 @@
 /*
  * FatFind: A Diamond application for adipocyte image exploration
  *
- * Copyright (c) 2006 Carnegie Mellon University. All rights reserved.
+ * Copyright (c) 2006-2007 Carnegie Mellon University. All rights reserved.
  * Additional copyrights may be listed below.
  *
  * This program and the accompanying materials are made available under
@@ -355,6 +355,7 @@ extern "C" {
 
     // image data
     lf_ref_attr(ohandle, "_rgb_image.rgbimage", &len, &data);
+    lf_omit_attr(ohandle, "_rgb_image.rgbimage");
 
     // feed it to our processor
     clist = circlesFromImage2(cr, w, h, w * 4, 4, data);
