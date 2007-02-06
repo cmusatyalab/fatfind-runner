@@ -173,6 +173,8 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
     rgb_filter_name = "/opt/snapfind/lib/fil_rgb.a";
   } else if (access("/usr/local/diamond/lib/fil_rgb.a", F_OK) == 0) {
     rgb_filter_name = "/usr/local/diamond/lib/fil_rgb.a";
+  } else if (access(FATFIND_FILTERDIR "/fil_rgb.a", F_OK) == 0) {
+    rgb_filter_name = FATFIND_FILTERDIR "/fil_rgb.a";
   } else {
     // old way
     rgb_filter_name = FATFIND_FILTERDIR "/fil_rgb.so";
