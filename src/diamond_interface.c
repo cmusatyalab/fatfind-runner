@@ -1,15 +1,15 @@
 /*
- * FatFind: A Diamond application for adipocyte image exploration
+ *  FatFind
+ *  A Diamond application for adipocyte image exploration
+ *  Version 1
  *
- * Copyright (c) 2006-2007 Carnegie Mellon University. All rights reserved.
- * Additional copyrights may be listed below.
+ *  Copyright (c) 2006 Carnegie Mellon University
+ *  All Rights Reserved.
  *
- * This program and the accompanying materials are made available under
- * the terms of the Eclipse Public License v1.0 which accompanies this
- * distribution in the file named LICENSE.
- *
- * Technical and financial contributors are listed in the file named
- * CREDITS.
+ *  This software is distributed under the terms of the Eclipse Public
+ *  License, Version 1.0 which can be found in the file named LICENSE.
+ *  ANY USE, REPRODUCTION OR DISTRIBUTION OF THIS SOFTWARE CONSTITUTES
+ *  RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT
  */
 
 #include <glib.h>
