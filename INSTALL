@@ -1,12 +1,12 @@
 FatFind: A Diamond application for adipocyte image exploration
 Version 1
 
-Copyright (c) 2006 Carnegie Mellon University
+Copyright (c) 2006-2007 Carnegie Mellon University
 All rights reserved.
 
 
 Adam Goode
-12 Sep 2006
+6 Feb 2007
 
 
 FatFind Install Guide
@@ -25,8 +25,8 @@ These are:
  * libglade2 >= 2.5.1
  * X11 (specifically libXt)
  * ltilib (CVS)
- * Diamond (CVS)
- * SnapFind >= 1.1
+ * OpenDiamond Platform >= 2.0
+ * SnapFind >= 1.2
 
 
 GTK+ and libglade should be available on any modern Linux system,
@@ -59,12 +59,11 @@ FatFind currently requires the CVS version of ltilib.
 
 
 
-Diamond provides the infrastructure for interactive search.
+The OpenDiamond Platform provides the infrastructure for interactive search.
 
-FatFind currently requires the CVS version of Diamond.
+FatFind currently requires at least version 2.0 of the OpenDiamond Platform.
 
- 1. Download the Diamond snapshot at
-    http://diamond.cs.cmu.edu/packages/diamond-1.3.cvs20060911.tar.gz
+ 1. Download the OpenDiamond Platform at http://diamond.cs.cmu.edu/download
 
  2. Unpack, and install following directions in INSTALL.
 
@@ -75,8 +74,7 @@ SnapFind is another Diamond application, completely separate from FatFind.
 SnapFind is needed for just one file, fil_rgb.so. Currently, the easiest
 way to build fil_rgb.so is to build SnapFind.
 
- 1. Download Snapfind at
-    http://diamond.cs.cmu.edu/packages/snapfind_1.1.0-1.tar.gz
+ 1. Download SnapFind at http://diamond.cs.cmu.edu/download
 
  2. Unpack, and build (not necessary to install) following instructions
     in INSTALL.
