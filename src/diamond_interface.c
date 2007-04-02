@@ -317,7 +317,17 @@ gboolean diamond_result_callback(gpointer g_data) {
   g_assert(!err);
 
   pix_loader = gdk_pixbuf_loader_new();
-  g_assert(gdk_pixbuf_loader_write(pix_loader, data, len, NULL));
+
+  // loop to work around crash
+  int remaining = len;
+  int offset = 0;
+  while (remaining > 0) {
+    int to_read = MIN(1024, remaining);
+    g_assert(gdk_pixbuf_loader_write(pix_loader, data + offset,
+				     to_read, NULL));
+    remaining -= to_read;
+    offset += to_read;
+  }
   g_assert(gdk_pixbuf_loader_close(pix_loader, NULL));
   pix = g_object_ref(gdk_pixbuf_loader_get_pixbuf(pix_loader));
   g_object_unref(pix_loader);
