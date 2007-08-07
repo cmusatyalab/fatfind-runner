@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(FatFind, [1.0.2])
-AC_CONFIG_SRCDIR(src)
-AM_INIT_AUTOMAKE(foreign)
-AM_CONFIG_HEADER(config.h)
-AM_MAINTAINER_MODE
+AC_INIT(fatfind, [1.0.3], [diamond@cs.cmu.edu])
+AC_PREREQ([2.59])
+AC_CONFIG_SRCDIR([src])
+AM_INIT_AUTOMAKE([foreign 1.9])
+AC_CONFIG_HEADERS([config.h])
 
 AC_ISC_POSIX
 AC_PROG_CC
