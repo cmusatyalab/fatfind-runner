@@ -7,11 +7,13 @@ Makefile.in
 /missing
 /depcomp
 
+*~
 *.bak
 *.o
 *.so
 *.a
 *.Po
+*.Tpo
 
 /src/fatfind
 /aclocal.m4
