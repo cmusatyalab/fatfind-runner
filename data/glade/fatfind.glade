@@ -57,14 +57,6 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="scopeMenu">
-	      <property name="visible">True</property>
-	      <property name="label" translatable="yes">_Scope</property>
-	      <property name="use_underline">True</property>
-	    </widget>
-	  </child>
-
-	  <child>
 	    <widget class="GtkMenuItem" id="help1">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_Help</property>
@@ -1062,7 +1054,7 @@
 				    <widget class="GtkHButtonBox" id="hbuttonbox2">
 				      <property name="visible">True</property>
 				      <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
-				      <property name="spacing">40</property>
+				      <property name="spacing">0</property>
 
 				      <child>
 					<widget class="GtkButton" id="startSearch">
@@ -1136,6 +1128,19 @@
 					      </child>
 					    </widget>
 					  </child>
+					</widget>
+				      </child>
+
+				      <child>
+					<widget class="GtkButton" id="defineScope">
+					  <property name="visible">True</property>
+					  <property name="can_default">True</property>
+					  <property name="can_focus">True</property>
+					  <property name="label" translatable="yes">Define Scope</property>
+					  <property name="use_underline">True</property>
+					  <property name="relief">GTK_RELIEF_NORMAL</property>
+					  <property name="focus_on_click">True</property>
+					  <signal name="clicked" handler="on_defineScope_clicked" last_modification_time="Tue, 02 Oct 2007 18:50:26 GMT"/>
 					</widget>
 				      </child>
 				    </widget>
@@ -1532,7 +1537,6 @@
 			  <child>
 			    <widget class="GtkVRuler" id="resultVRuler">
 			      <property name="visible">True</property>
-			      <property name="metric">GTK_PIXELS</property>
 			      <property name="lower">0</property>
 			      <property name="upper">10</property>
 			      <property name="position">0</property>
@@ -1551,10 +1555,9 @@
 			  <child>
 			    <widget class="GtkHRuler" id="resultHRuler">
 			      <property name="visible">True</property>
-			      <property name="metric">GTK_PIXELS</property>
 			      <property name="lower">0</property>
 			      <property name="upper">10</property>
-			      <property name="position">2.16244721413</property>
+			      <property name="position">0</property>
 			      <property name="max_size">10</property>
 			    </widget>
 			    <packing>
