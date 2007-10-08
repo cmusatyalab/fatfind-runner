@@ -29,6 +29,7 @@
 
 #include "ltiHistogram.h"
 
+#include "lib_scope.h"
 
 GtkListStore *found_items;
 
@@ -770,4 +771,10 @@ void on_generateHistogram_clicked (GtkButton *button,
   g_object_unref(histogram_pix);
 
   gtk_text_buffer_insert(text, &text_iter, "\n", -1);
+}
+
+void on_defineScope_clicked (GtkButton *button,
+			     gpointer user_data) {
+  ls_define_scope();
+  diamond_init();
 }
