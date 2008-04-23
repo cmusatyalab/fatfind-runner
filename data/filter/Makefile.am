@@ -1,5 +1,5 @@
 filter_DATA = rgb-filter.txt
-nodist_filter_DATA = fil_circle.so fil_rgb.a
+nodist_filter_DATA = fil_circle.so fil_rgb.so
 
 filterdir = $(datadir)/fatfind/filter
 

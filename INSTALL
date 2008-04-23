@@ -71,15 +71,15 @@ FatFind currently requires at least version 2.0 of the OpenDiamond Platform.
 
 SnapFind is another Diamond application, completely separate from FatFind.
 
-SnapFind is needed for just one file, fil_rgb.a. Currently, the easiest
-way to build fil_rgb.a is to build SnapFind.
+SnapFind is needed for just one file, fil_rgb.so. Currently, the easiest
+way to build fil_rgb.so is to build SnapFind.
 
  1. Download SnapFind at http://diamond.cs.cmu.edu/download
 
  2. Unpack, and build (not necessary to install) following instructions
     in INSTALL.
 
- 3. Look in snapfind/src/target/lib for fil_rgb.a. You will need this
+ 3. Look in snapfind/src/target/lib for fil_rgb.so. You will need this
     later to drop into your build of FatFind.
 
 
@@ -91,7 +91,7 @@ Once all prerequisites are installed, it's time to build FatFind.
 
  1. ./configure --prefix=[someplace]
 
- 2. cp [snapfind_build_location]/src/target/lib/fil_rgb.a data/filter
+ 2. cp [snapfind_build_location]/src/target/lib/fil_rgb.so data/filter
 
  3. make
 
