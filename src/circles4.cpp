@@ -12,6 +12,8 @@
  *  RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT
  */
 
+#include <cstring>
+
 #include "ltiRGBPixel.h"
 #include "ltiScaling.h"
 #include "ltiDraw.h"                  // drawing tool
