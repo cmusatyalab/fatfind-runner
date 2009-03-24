@@ -189,8 +189,8 @@ gboolean diamond_result_callback(gpointer g_data) {
   void *cookie;
   unsigned int len;
   int err;
-  int w, origW;
-  int h, origH;
+  int w, serverThumbW, origW;
+  int h, serverThumbH, origH;
   GdkPixbufLoader *pix_loader;
   GdkPixbuf *pix, *pix2, *pix3;
 
@@ -203,7 +203,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   GtkTreeIter iter;
 
-  double scale, prescale;
+  double scale, prescale, scaleFromServerThumb;
 
   ls_search_handle_t dr;
 
@@ -237,6 +237,15 @@ gboolean diamond_result_callback(gpointer g_data) {
     return FALSE;
   }
 
+  // original size
+  err = lf_ref_attr(obj, "_rows.int", &len, (unsigned char **) &data);
+  g_assert(!err);
+  origH = *((int *) data);
+
+  err = lf_ref_attr(obj, "_cols.int", &len, (unsigned char **) &data);
+  g_assert(!err);
+  origW = *((int *) data);
+
   // more results
   printf("got object: %p\n", obj);
 
@@ -259,7 +268,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   title = make_thumbnail_title(clist);
 
   // thumbnail
-  err = lf_next_block(obj, INT_MAX, &len, (unsigned char **) &data);
+  err = lf_ref_attr(obj, "thumbnail.jpeg", &len, (unsigned char **) &data);
   g_assert(!err);
 
   pix_loader = gdk_pixbuf_loader_new();
@@ -279,14 +288,16 @@ gboolean diamond_result_callback(gpointer g_data) {
   g_object_unref(pix_loader);
   pix_loader = NULL;
 
-  origW = w = gdk_pixbuf_get_width(pix);
-  origH = h = gdk_pixbuf_get_height(pix);
+  serverThumbW = w = gdk_pixbuf_get_width(pix);
+  serverThumbH = h = gdk_pixbuf_get_height(pix);
 
   compute_thumbnail_scale(&scale, &w, &h);
 
   // draw into thumbnail
+  scaleFromServerThumb = (double) origW / (double) serverThumbW;
   pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
-  draw_into_thumbnail(pix2, pix, clist, scale, scale, w, h,
+  draw_into_thumbnail(pix2, pix, clist, scale, scale / scaleFromServerThumb,
+		      w, h,
 		      filter_by_in_result);
 
   // draw into scaled-down image
@@ -295,7 +306,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   pix3 = gdk_pixbuf_scale_simple(pix,
 				 w, h,
 				 GDK_INTERP_BILINEAR);
-  prescale = (double) w / (double) origW;
+  prescale = (double) w / (double) serverThumbW;
 
   // store
   gtk_list_store_append(found_items, &iter);

@@ -14,4 +14,6 @@ MERIT  500
 EVAL_FUNCTION  f_eval_thumbnailer  # eval function
 INIT_FUNCTION  f_init_thumbnailer  # init function
 FINI_FUNCTION  f_fini_thumbnailer  # fini function
+ARG  150
+ARG  150
 REQUIRES  RGB  # dependancies
