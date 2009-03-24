@@ -96,6 +96,10 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   GtkTreeModel *m = gtk_icon_view_get_model(icon_view);
   GtkWidget *w;
 
+  GdkCursor *cursor;
+  GdkDisplay *display;
+  GdkWindow *toplevel_window;
+
   const char *objectid;
 
   // save path
@@ -109,6 +113,16 @@ static void foreach_select_investigation(GtkIconView *icon_view,
 		     2, &circles_list,
 		     3, &objectid,
 		     -1);
+
+  // busy cursor
+  display = gtk_widget_get_display(GTK_WIDGET(icon_view));
+  cursor = gdk_cursor_new_for_display(display, GDK_WATCH);
+  toplevel_window = gtk_widget_get_toplevel(GTK_WIDGET(icon_view))->window;
+  gdk_window_set_cursor(toplevel_window, cursor);
+  gdk_cursor_unref(cursor);
+  cursor = NULL;
+  gdk_display_flush(display);
+
 
   ls_obj_handle_t newobj;
   const char *attrs[] = {"", NULL};
@@ -136,6 +150,8 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   g_object_unref(pix_loader);
   pix_loader = NULL;
   ls_release_object(dr, newobj);
+
+  gdk_window_set_cursor(toplevel_window, NULL);
 
   w = glade_xml_get_widget(g_xml, "selectedResult");
   gtk_widget_queue_draw(w);
