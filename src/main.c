@@ -122,8 +122,7 @@ static void setup_results_store(GtkIconView *g) {
 		       GDK_TYPE_PIXBUF,
 		       G_TYPE_STRING,
 		       G_TYPE_POINTER,
-		       GDK_TYPE_PIXBUF,
-		       G_TYPE_DOUBLE);
+		       G_TYPE_STRING);
 
   gtk_icon_view_set_model(g, GTK_TREE_MODEL(found_items));
   gtk_icon_view_set_pixbuf_column(g, 0);

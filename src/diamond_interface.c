@@ -25,6 +25,7 @@
 #include <glib/gstdio.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "lib_filter.h"
 #include "lib_dconfig.h"
@@ -86,8 +87,8 @@ void diamond_init(void) {
   update_gids();
 }
 
-static ls_search_handle_t generic_search (char *filter_spec_name) {
-  ls_search_handle_t diamond_handle;
+static void generic_search (ls_search_handle_t *dr,
+			    char *filter_spec_name) {
   int f1, f2;
   int err;
 
@@ -95,9 +96,7 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
 
   char *rgb_filter_name;
 
-  diamond_handle = ls_init_search();
-
-  err = ls_set_searchlist(diamond_handle, diamond_gid_list.num_gids,
+  err = ls_set_searchlist(dr, diamond_gid_list.num_gids,
 			  diamond_gid_list.gids);
   g_assert(!err);
 
@@ -105,14 +104,14 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   f1 = g_open(FATFIND_FILTERDIR "/rgb-filter.txt", O_RDONLY);
   if (f1 == -1) {
     perror("can't open " FATFIND_FILTERDIR "/rgb-filter.txt");
-    return NULL;
+    return;
   }
 
   f2 = g_open(filter_spec_name, O_WRONLY | O_APPEND);
   if (f2 == -1) {
     printf("can't open %s", filter_spec_name);
     perror("");
-    return NULL;
+    return;
   }
 
   while (read(f1, buf, 1) > 0) {
@@ -122,17 +121,14 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   close(f1);
   close(f2);
 
-  err = ls_set_searchlet(diamond_handle, DEV_ISA_IA32,
+  err = ls_set_searchlet(dr, DEV_ISA_IA32,
 			 "/opt/snapfind/lib/fil_rgb.so",
 			 filter_spec_name);
   g_assert(!err);
 
-  err = ls_add_filter_file(diamond_handle, DEV_ISA_IA32,
+  err = ls_add_filter_file(dr, DEV_ISA_IA32,
 			   "/opt/snapfind/lib/fil_thumb.so");
   g_assert(!err);
-
-
-  return diamond_handle;
 }
 
 
@@ -192,7 +188,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   int w, serverThumbW, origW;
   int h, serverThumbH, origH;
   GdkPixbufLoader *pix_loader;
-  GdkPixbuf *pix, *pix2, *pix3;
+  GdkPixbuf *pix, *pix2;
 
   static time_t last_time;
 
@@ -203,7 +199,7 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   GtkTreeIter iter;
 
-  double scale, prescale, scaleFromServerThumb;
+  double scale, scaleFromServerThumb;
 
   ls_search_handle_t dr;
 
@@ -300,13 +296,11 @@ gboolean diamond_result_callback(gpointer g_data) {
 		      w, h,
 		      filter_by_in_result);
 
-  // draw into scaled-down image
-  w *= 4;
-  h *= 4;
-  pix3 = gdk_pixbuf_scale_simple(pix,
-				 w, h,
-				 GDK_INTERP_BILINEAR);
-  prescale = (double) w / (double) serverThumbW;
+  // objectid
+  const char *objectid;
+  ls_get_objectid(dr, obj, &objectid);
+  const char *g_objectid = g_strdup(objectid);
+  free(objectid);
 
   // store
   gtk_list_store_append(found_items, &iter);
@@ -314,13 +308,11 @@ gboolean diamond_result_callback(gpointer g_data) {
 		     0, pix2,
 		     1, title,
 		     2, clist,
-		     3, pix3,
-		     4, prescale,
+		     3, g_objectid,
 		     -1);
 
   g_object_unref(pix);
   g_object_unref(pix2);
-  g_object_unref(pix3);
 
 
   //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
@@ -336,9 +328,9 @@ gboolean diamond_result_callback(gpointer g_data) {
 }
 
 
-ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
-					 double maxEccentricity, double minSharpness) {
-  ls_search_handle_t dr;
+void diamond_circle_search(ls_search_handle_t dr,
+			   double minRadius, double maxRadius,
+			   double maxEccentricity, double minSharpness) {
   int fd;
   FILE *f;
   gchar *name_used;
@@ -350,7 +342,7 @@ ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
 
   // write out file for circle search
   f = fdopen(fd, "a");
-  g_return_val_if_fail(f, NULL);
+  g_return_if_fail(f);
   fprintf(f, "\n\n"
 	  "FILTER circles\n"
 	  "THRESHOLD 1\n"
@@ -367,7 +359,7 @@ ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
   fflush(f);
 
   // initialize with generic search
-  dr = generic_search(name_used);
+  generic_search(dr, name_used);
 
   // add filter
   err = ls_add_filter_file(dr, DEV_ISA_IA32,
@@ -380,8 +372,5 @@ ls_search_handle_t diamond_circle_search(double minRadius, double maxRadius,
 
   // start search
   ls_start_search(dr);
-
-  // return
-  return dr;
 }
 

@@ -26,6 +26,7 @@
 #include "util.h"
 #include "drawutil.h"
 #include "diamond_interface.h"
+#include "lib_filter.h"
 
 #include "ltiHistogram.h"
 
@@ -37,7 +38,6 @@ static GdkPixbuf *i_pix;
 static GdkPixbuf *i_pix_scaled;
 
 static guchar *hitmap;
-static gdouble prescale;
 static gdouble display_scale = 1.0;
 
 static gboolean show_circles;
@@ -61,7 +61,6 @@ static void stop_search(void) {
     printf("terminating search\n");
     g_source_remove(search_idle_id);
     ls_terminate_search(dr);
-    dr = NULL;
   }
 }
 
@@ -97,6 +96,8 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   GtkTreeModel *m = gtk_icon_view_get_model(icon_view);
   GtkWidget *w;
 
+  const char *objectid;
+
   // save path
   if (current_result_path != NULL) {
     gtk_tree_path_free(current_result_path);
@@ -106,9 +107,35 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   gtk_tree_model_get_iter(m, &iter, path);
   gtk_tree_model_get(m, &iter,
 		     2, &circles_list,
-		     3, &i_pix,
-		     4, &prescale,
+		     3, &objectid,
 		     -1);
+
+  ls_obj_handle_t newobj;
+  const char *attrs[] = {"", NULL};
+  int diamond_err = ls_reexecute_filters(dr, objectid, attrs, &newobj);
+  g_assert(!diamond_err);
+
+  GdkPixbufLoader *pix_loader = gdk_pixbuf_loader_new();
+  void *diamond_data;
+  unsigned int len;
+  lf_ref_attr(newobj, "", &len, (unsigned char **) &diamond_data);
+
+  // loop to work around crash
+  int remaining = len;
+  int offset = 0;
+  while (remaining > 0) {
+    int to_read = MIN(1024, remaining);
+    g_assert(gdk_pixbuf_loader_write(pix_loader,
+				     (uint8_t *) diamond_data + offset,
+				     to_read, NULL));
+    remaining -= to_read;
+    offset += to_read;
+  }
+  g_assert(gdk_pixbuf_loader_close(pix_loader, NULL));
+  i_pix = (GdkPixbuf *) g_object_ref(gdk_pixbuf_loader_get_pixbuf(pix_loader));
+  g_object_unref(pix_loader);
+  pix_loader = NULL;
+  ls_release_object(dr, newobj);
 
   w = glade_xml_get_widget(g_xml, "selectedResult");
   gtk_widget_queue_draw(w);
@@ -150,8 +177,6 @@ static void draw_investigate_offscreen_items(gint allocation_width,
       display_scale = (float) allocation_width
 	/ (float) gdk_pixbuf_get_width(i_pix);
     }
-
-    display_scale *= prescale;
 
     i_pix_scaled = gdk_pixbuf_scale_simple(i_pix,
 					   w, h,
@@ -238,9 +263,12 @@ void on_startSearch_clicked (GtkButton *button,
     displayed_objects = 0;
 
     // diamond
-    dr = diamond_circle_search(r_min, r_max,
-			       max_eccentricity,
-			       min_sharpness);
+    if (dr == NULL) {
+      dr = ls_init_search();
+    }
+    diamond_circle_search(dr, r_min, r_max,
+			  max_eccentricity,
+			  min_sharpness);
 
     // take the handle, put it into the idle callback to get
     // the results?
@@ -352,7 +380,7 @@ gboolean on_selectedResult_button_press_event (GtkWidget      *widget,
 	// make new thumbnail
 	pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
 	draw_into_thumbnail(pix2, i_pix, circles_list, scale,
-			    scale * prescale, w, h, filter_by_in_result);
+			    scale, w, h, filter_by_in_result);
 
 	// add it back
 	gtk_list_store_set(store, &iter,
@@ -447,7 +475,7 @@ gboolean on_selectedResult_button_release_event (GtkWidget      *widget,
 
     pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
     draw_into_thumbnail(pix2, i_pix, circles_list, scale,
-			scale * prescale, w, h, filter_by_in_result);
+			scale, w, h, filter_by_in_result);
 
     // update
     gtk_list_store_set(store, &iter,

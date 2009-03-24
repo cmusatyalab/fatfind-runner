@@ -44,8 +44,9 @@ extern int displayed_objects;
 extern "C" {
 #endif
   void diamond_init(void);
-  ls_search_handle_t diamond_circle_search (double minRadius, double maxRadius,
-					    double maxEccentricity, double minSharpness);
+  void diamond_circle_search (ls_search_handle_t dr,
+			      double minRadius, double maxRadius,
+			      double maxEccentricity, double minSharpness);
   gboolean diamond_result_callback(gpointer data);
 #ifdef __cplusplus
 }
