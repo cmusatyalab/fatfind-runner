@@ -3,7 +3,7 @@
  *  A Diamond application for adipocyte image exploration
  *  Version 1
  *
- *  Copyright (c) 2006 Carnegie Mellon University
+ *  Copyright (c) 2006, 2009 Carnegie Mellon University
  *  All Rights Reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
