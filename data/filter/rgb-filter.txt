@@ -6,3 +6,12 @@ INIT_FUNCTION  f_init_img2rgb  # init function
 FINI_FUNCTION  f_fini_img2rgb  # fini function
 FILTER  APPLICATION  # dependancies
 REQUIRES  RGB  # dependancies
+
+
+FILTER  thumbnailer
+THRESHOLD  1
+MERIT  500
+EVAL_FUNCTION  f_eval_thumbnailer  # eval function
+INIT_FUNCTION  f_init_thumbnailer  # init function
+FINI_FUNCTION  f_fini_thumbnailer  # fini function
+REQUIRES  RGB  # dependancies

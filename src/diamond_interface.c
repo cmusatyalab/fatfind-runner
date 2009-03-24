@@ -122,19 +122,13 @@ static ls_search_handle_t generic_search (char *filter_spec_name) {
   close(f1);
   close(f2);
 
-  // check for snapfind filter
-  if (access("/opt/snapfind/lib/fil_rgb.so", F_OK) == 0) {
-    rgb_filter_name = "/opt/snapfind/lib/fil_rgb.so";
-  } else if (access("/usr/local/diamond/lib/fil_rgb.so", F_OK) == 0) {
-    rgb_filter_name = "/usr/local/diamond/lib/fil_rgb.so";
-  } else {
-    // old way
-    rgb_filter_name = FATFIND_FILTERDIR "/fil_rgb.so";
-  }
-
   err = ls_set_searchlet(diamond_handle, DEV_ISA_IA32,
-			 rgb_filter_name,
+			 "/opt/snapfind/lib/fil_rgb.so",
 			 filter_spec_name);
+  g_assert(!err);
+
+  err = ls_add_filter_file(diamond_handle, DEV_ISA_IA32,
+			   "/opt/snapfind/lib/fil_thumb.so");
   g_assert(!err);
 
 
