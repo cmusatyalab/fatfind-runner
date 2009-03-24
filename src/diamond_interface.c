@@ -100,6 +100,13 @@ static void generic_search (ls_search_handle_t *dr,
 			  diamond_gid_list.gids);
   g_assert(!err);
 
+  const char *attributes[] = {"thumbnail.jpeg",
+			      "circle-data",
+			      "_rows.int",
+			      "_cols.int",
+			      NULL};
+  ls_set_push_attributes(dr, attributes);
+
   // append our stuff
   f1 = g_open(FATFIND_FILTERDIR "/rgb-filter.txt", O_RDONLY);
   if (f1 == -1) {
