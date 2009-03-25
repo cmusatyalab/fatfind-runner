@@ -297,9 +297,9 @@ gboolean diamond_result_callback(gpointer g_data) {
   compute_thumbnail_scale(&scale, &w, &h);
 
   // draw into thumbnail
-  scaleFromServerThumb = (double) origW / (double) serverThumbW;
+  scaleFromServerThumb = (double) serverThumbW / (double) origW;
   pix2 = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, w, h);
-  draw_into_thumbnail(pix2, pix, clist, scale, scale / scaleFromServerThumb,
+  draw_into_thumbnail(pix2, pix, clist, scale, scale * scaleFromServerThumb,
 		      w, h,
 		      filter_by_in_result);
 
