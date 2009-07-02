@@ -28,10 +28,7 @@
 #include <stdlib.h>
 
 #include "lib_filter.h"
-#include "lib_dconfig.h"
-
-static struct collection_t collections[MAX_ALBUMS+1] = { { NULL } };
-static gid_list_t diamond_gid_list;
+#include "lib_scope.h"
 
 int total_objects;
 int processed_objects;
@@ -39,52 +36,9 @@ int dropped_objects;
 
 int displayed_objects;
 
-static void update_gids(void) {
-  int i, j;
-
-  // clear
-  diamond_gid_list.num_gids = 0;
-  for (i=0; i<MAX_ALBUMS && collections[i].name; i++) {
-    if (collections[i].active) {
-      int err;
-      int num_gids = MAX_ALBUMS;
-      groupid_t gids[MAX_ALBUMS];
-      err = nlkup_lookup_collection(collections[i].name, &num_gids, gids);
-      g_assert(!err);
-      for (j=0; j < num_gids; j++) {
-	printf("adding gid: %lld for collection %s\n", gids[j], collections[i].name);
-	diamond_gid_list.gids[diamond_gid_list.num_gids++] = gids[j];
-      }
-    }
-  }
-}
-
-void diamond_init(void) {
-  int i;
-  int j;
-  int err;
-  void *cookie;
-  char *name;
-
-  printf("reading collections...\n");
-  {
-    int pos = 0;
-
-    err = nlkup_first_entry(&name, &cookie);
-    while(!err && pos < MAX_ALBUMS) {
-
-      printf(" collection %2d: %s\n", pos, name);
-      collections[pos].name = name;
-      collections[pos].active = (pos == 0) ? 1 : 0;
-
-      pos++;
-      err = nlkup_next_entry(&name, &cookie);
-    }
-
-    collections[pos].name = NULL;
-  }
-
-  update_gids();
+void diamond_init(ls_search_handle_t dr) {
+    int err = ls_define_scope(dr);
+    g_assert(!err);
 }
 
 static void generic_search (ls_search_handle_t *dr,
@@ -95,10 +49,6 @@ static void generic_search (ls_search_handle_t *dr,
   char buf[1];
 
   char *rgb_filter_name;
-
-  err = ls_set_searchlist(dr, diamond_gid_list.num_gids,
-			  diamond_gid_list.gids);
-  g_assert(!err);
 
   const char *attributes[] = {"thumbnail.jpeg",
 			      "circle-data",
@@ -188,8 +138,6 @@ gboolean diamond_result_callback(gpointer g_data) {
 
   ls_obj_handle_t obj;
   void *data;
-  char *name;
-  void *cookie;
   unsigned int len;
   int err;
   int w, serverThumbW, origW;

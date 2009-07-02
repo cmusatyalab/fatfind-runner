@@ -818,7 +818,7 @@ void on_generateHistogram_clicked (GtkButton *button,
 }
 
 void on_defineScope_clicked (GtkButton *button,
-			     gpointer user_data) {
-  ls_define_scope();
-  diamond_init();
+			     gpointer user_data)
+{
+  diamond_init(dr);
 }

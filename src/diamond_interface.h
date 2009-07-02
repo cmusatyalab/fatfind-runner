@@ -43,7 +43,7 @@ extern int displayed_objects;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void diamond_init(void);
+  void diamond_init(ls_search_handle_t dr);
   void diamond_circle_search (ls_search_handle_t dr,
 			      double minRadius, double maxRadius,
 			      double maxEccentricity, double minSharpness);

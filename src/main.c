@@ -166,9 +166,6 @@ main (int argc, char *argv[])
   // init results
   setup_results_store(GTK_ICON_VIEW(glade_xml_get_widget(g_xml,
 							 "searchResults")));
-  // init diamond
-  diamond_init();
-
   gtk_widget_show_all(fatfind);
 
   gtk_main();
