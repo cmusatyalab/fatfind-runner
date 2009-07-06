@@ -820,5 +820,8 @@ void on_generateHistogram_clicked (GtkButton *button,
 void on_defineScope_clicked (GtkButton *button,
 			     gpointer user_data)
 {
-  diamond_init(dr);
+    if (dr == NULL) {
+      dr = ls_init_search();
+    }
+    diamond_init(dr);
 }

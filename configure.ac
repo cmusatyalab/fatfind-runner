@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(fatfind, [1.0.7], [diamond@cs.cmu.edu])
+AC_INIT(fatfind, [1.0.8], [diamond@cs.cmu.edu])
 AC_PREREQ([2.59])
 AC_CONFIG_SRCDIR([src])
 AM_INIT_AUTOMAKE([foreign 1.9])
