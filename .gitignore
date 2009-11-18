@@ -16,6 +16,7 @@ Makefile.in
 *.Tpo
 
 /src/fatfind
+/src/fatfind-runner
 /aclocal.m4
 
 /stamp*
