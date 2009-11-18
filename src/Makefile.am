@@ -10,7 +10,7 @@ INCLUDES = \
 	-DFATFIND_FILTERDIR=\""$(filterdir)"\" \
 	@OPENDIAMOND_CFLAGS@ @GLADE_CFLAGS@
 
-bin_PROGRAMS = fatfind
+bin_PROGRAMS = fatfind fatfind-runner
 
 fatfind_SOURCES = \
 	main.c fatfind.h \
@@ -22,6 +22,10 @@ fatfind_SOURCES = \
 	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
 
+fatfind_runner_SOURCES = circles4.cpp circles4.h fatfind-runner.cpp util.c
+
 fatfind_LDADD = @OPENDIAMOND_LIBS@ @GLADE_LIBS@
+
+fatfind_runner_LDADD = @OPENDIAMOND_LIBS@ @GLIB_LIBS@
 
 fatfind_LDFLAGS = -export-dynamic
