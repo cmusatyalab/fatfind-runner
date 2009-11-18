@@ -1,2 +1,2 @@
-data/filter/fil_circle.so: src/circles4.cpp src/circles4.h src/util.h src/util.c
-	g++ -fPIC ${LDFLAGS} ${CPPFLAGS} -L/opt/diamond-filter-kit/lib `pkg-config opendiamond glib-2.0 --cflags` `lti-config nogtk --cxxflags` -O2 -g -m32 -Wall -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/circles4.cpp src/util.c `lti-config nogtk --libs` `pkg-config glib-2.0 --libs` -Wl,-Bdynamic
+data/filter/fil_circle.so: src/circles4.cpp src/circles4.h src/util.h src/util.c src/filter.c
+	g++ -fPIC ${LDFLAGS} ${CPPFLAGS} -fvisibility=hidden -L/opt/diamond-filter-kit/lib `pkg-config opendiamond glib-2.0 --cflags` `/opt/diamond-filter-kit/bin/lti-config nogtk --cxxflags` -O2 -g -m32 -Wall -shared  -o data/filter/fil_circle.so -Wl,-Bstatic src/filter.c src/circles4.cpp src/util.c -L/opt/diamond-filter-kit/lib/ltilib -lltinvr `pkg-config glib-2.0 --libs` -Wl,-Bdynamic

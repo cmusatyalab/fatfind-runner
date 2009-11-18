@@ -19,6 +19,10 @@ PKG_CHECK_MODULES(GLADE, [$pkg_modules])
 AC_SUBST(GLADE_CFLAGS)
 AC_SUBST(GLADE_LIBS)
 
+PKG_CHECK_MODULES(GLIB, [glib-2.0])
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
+
 PKG_CHECK_MODULES(OPENDIAMOND, [opendiamond])
 AC_SUBST(OPENDIAMOND_CFLAGS)
 AC_SUBST(OPENDIAMOND_LIBS)
@@ -27,10 +31,10 @@ AC_SEARCH_LIBS([sqrt], [m],, AC_MSG_FAILURE([cannot find math library]))
 AC_SEARCH_LIBS([pthread_create],
 	[pthread],, AC_MSG_FAILURE([cannot find pthread_create function]))
 
-AC_SUBST(LIBS, "`lti-config nogtk --libs`")
+AC_SUBST(LIBS, "`/opt/diamond-filter-kit/bin/lti-config nogtk --libs`")
 
 
-AC_SUBST(AM_CPPFLAGS, "-Werror-implicit-function-declaration `lti-config nogtk --cxxflags`")
+AC_SUBST(AM_CPPFLAGS, "-Werror-implicit-function-declaration `/opt/diamond-filter-kit/bin/lti-config nogtk --cxxflags`")
 
 # XXX should work on more than 1 arch
 AC_SUBST(AM_CFLAGS, "-m32")

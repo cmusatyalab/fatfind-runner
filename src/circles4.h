@@ -26,12 +26,25 @@ typedef struct {
   gboolean in_result;
 } circle_type;
 
+
+typedef struct {
+  double minRadius;
+  double maxRadius;
+  double maxEccentricity;
+  double minSharpness;
+} circles_state_t;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
   GList *circlesFromImage(const int width, const int height, const int stride,
 			  const int bytesPerPixel,
 			  void *data, double minSharpness);
+  GList *circlesFromImage2(circles_state_t *ct,
+			   const int width, const int height,
+			   const int stride, const int bytesPerPixel,
+			   void *data);
 #ifdef __cplusplus
 }
 #endif
