@@ -26,7 +26,7 @@
 #include "util.h"
 #include "drawutil.h"
 #include "diamond_interface.h"
-#include "lib_filter.h"
+#include "lib_searchlet.h"
 
 #include "ltiHistogram.h"
 
@@ -132,7 +132,7 @@ static void foreach_select_investigation(GtkIconView *icon_view,
   GdkPixbufLoader *pix_loader = gdk_pixbuf_loader_new();
   void *diamond_data;
   unsigned int len;
-  lf_ref_attr(newobj, "", &len, (unsigned char **) &diamond_data);
+  ls_ref_attr(newobj, "", &len, (unsigned char **) &diamond_data);
 
   // loop to work around crash
   int remaining = len;

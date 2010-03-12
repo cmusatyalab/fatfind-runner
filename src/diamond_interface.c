@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "lib_filter.h"
+#include "lib_searchlet.h"
 #include "lib_scope.h"
 
 int total_objects;
@@ -189,18 +189,18 @@ gboolean diamond_result_callback(gpointer g_data) {
   }
 
   // original size
-  err = lf_ref_attr(obj, "_rows.int", &len, (unsigned char **) &data);
+  err = ls_ref_attr(obj, "_rows.int", &len, (unsigned char **) &data);
   g_assert(!err);
   origH = *((int *) data);
 
-  err = lf_ref_attr(obj, "_cols.int", &len, (unsigned char **) &data);
+  err = ls_ref_attr(obj, "_cols.int", &len, (unsigned char **) &data);
   g_assert(!err);
   origW = *((int *) data);
 
   // more results
   printf("got object: %p\n", obj);
 
-  err = lf_ref_attr(obj, "circle-data", &len, (unsigned char **) &data);
+  err = ls_ref_attr(obj, "circle-data", &len, (unsigned char **) &data);
   g_assert(!err);
 
   displayed_objects++;
@@ -219,7 +219,7 @@ gboolean diamond_result_callback(gpointer g_data) {
   title = make_thumbnail_title(clist);
 
   // thumbnail
-  err = lf_ref_attr(obj, "thumbnail.jpeg", &len, (unsigned char **) &data);
+  err = ls_ref_attr(obj, "thumbnail.jpeg", &len, (unsigned char **) &data);
   g_assert(!err);
 
   pix_loader = gdk_pixbuf_loader_new();
@@ -269,12 +269,6 @@ gboolean diamond_result_callback(gpointer g_data) {
   g_object_unref(pix);
   g_object_unref(pix2);
 
-
-  //  err = lf_first_attr(obj, &name, &len, &data, &cookie);
-  //  while (!err) {
-  //    printf(" attr name: %s, length: %d\n", name, len);
-  //    err = lf_next_attr(obj, &name, &len, &data, &cookie);
-  //  }
 
   err = ls_release_object(dr, obj);
   g_assert(!err);
