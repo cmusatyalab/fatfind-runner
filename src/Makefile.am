@@ -22,6 +22,8 @@ fatfind_SOURCES = \
 	circles4.cpp circles4.h \
 	diamond_interface.c diamond_interface.h
 
+EXTRA_DIST = filter.c
+
 #fatfind_runner_SOURCES = circles4.cpp circles4.h fatfind-runner.cpp util.c
 
 fatfind_LDADD = @OPENDIAMOND_LIBS@ @GLADE_LIBS@
