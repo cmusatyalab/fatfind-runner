@@ -15,7 +15,6 @@ Makefile.in
 *.Po
 *.Tpo
 
-/src/fatfind
 /src/fatfind-runner
 /aclocal.m4
 
