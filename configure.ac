@@ -34,7 +34,7 @@ AC_SEARCH_LIBS([pthread_create],
 AC_SUBST(LIBS, "`/opt/diamond-filter-kit/bin/lti-config nogtk --libs`")
 
 
-AC_SUBST(AM_CPPFLAGS, "-Werror-implicit-function-declaration `/opt/diamond-filter-kit/bin/lti-config nogtk --cxxflags`")
+AC_SUBST(LTILIB_CFLAGS, "-Werror-implicit-function-declaration `/opt/diamond-filter-kit/bin/lti-config nogtk --cxxflags`")
 
 # XXX should work on more than 1 arch
 AC_SUBST(AM_CFLAGS, "-m32")
