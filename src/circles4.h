@@ -40,11 +40,11 @@ extern "C" {
 #endif
   GList *circlesFromImage(const int width, const int height, const int stride,
 			  const int bytesPerPixel,
-			  void *data, double minSharpness);
+			  const void *data, double minSharpness);
   GList *circlesFromImage2(circles_state_t *ct,
 			   const int width, const int height,
 			   const int stride, const int bytesPerPixel,
-			   void *data);
+			   const void *data);
 #ifdef __cplusplus
 }
 #endif

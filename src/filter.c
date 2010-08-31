@@ -27,8 +27,8 @@ extern "C" {
 
 // 3 functions for diamond filter interface
 diamond_public
-int f_init_circles (int num_arg, char **args,
-		    int bloblen, void *blob_data,
+int f_init_circles (int num_arg, const char * const *args,
+		    int bloblen, const void *blob_data,
 		    const char *filter_name,
 		    void **filter_args) {
   circles_state_t *cr;
@@ -62,7 +62,7 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
 
   // for attributes from diamond
   size_t len;
-  unsigned char *data;
+  const void *data;
 
 
 
@@ -72,11 +72,11 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
 
   // width
   lf_ref_attr(ohandle, "_rows.int", &len, &data);
-  h = *((int *) data);
+  h = *((const int *) data);
 
   // height
   lf_ref_attr(ohandle, "_cols.int", &len, &data);
-  w = *((int *) data);
+  w = *((const int *) data);
 
   // image data
   lf_ref_attr(ohandle, "_rgb_image.rgbimage", &len, &data);
@@ -85,19 +85,18 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
   // feed it to our processor
   clist = circlesFromImage2(cr, w, h, w * 4, 4, data);
 
-  data = NULL;
-
   // add the list of circles to the cache and the object
   // XXX !
   num_circles = g_list_length(clist);
   if (num_circles > 0) {
     GList *l = clist;
     int i = 0;
-    data = (unsigned char *) g_malloc(sizeof(circle_type) * num_circles);
+    circle_type *circle_data =
+      (circle_type *) g_malloc(sizeof(circle_type) * num_circles);
 
     // pack in and count
     while (l != NULL) {
-      circle_type *p = ((circle_type *) data) + i;
+      circle_type *p = circle_data + i;
       circle_type *c = (circle_type *) l->data;
       *p = *c;
 
@@ -108,15 +107,14 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
       i++;
       l = g_list_next(l);
     }
-    lf_write_attr(ohandle, "circle-data", sizeof(circle_type) * num_circles, data);
+    lf_write_attr(ohandle, "circle-data", sizeof(circle_type) * num_circles, circle_data);
+    g_free(circle_data);
   }
 
   // free others
   g_list_foreach(clist, free_1_circle, NULL);
   g_list_free(clist);
   clist = NULL;
-  g_free(data);
-  data = NULL;
 
   // return number of circles
   return num_circles_in_result;

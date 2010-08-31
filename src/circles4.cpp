@@ -177,7 +177,7 @@ static circles_state_t staticState = {-1, -1, 0.4, 1};
 GList *circlesFromImage2(circles_state_t *ct,
 			 const int width, const int height,
 			 const int stride, const int bytesPerPixel,
-			 void *data) {
+			 const void *data) {
   uint64_t start_time_in_ms;
   uint64_t end_time_in_ms;
 
@@ -279,7 +279,7 @@ GList *circlesFromImage2(circles_state_t *ct,
 // called from GUI
 GList *circlesFromImage(const int width, const int height,
 			const int stride, const int bytesPerPixel,
-			void *data, double minSharpness) {
+			const void *data, double minSharpness) {
   circles_state_t cs = staticState;
   cs.minSharpness = minSharpness;
   return circlesFromImage2(&cs, width,
