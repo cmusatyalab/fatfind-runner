@@ -2,4 +2,7 @@
 
 SUBDIRS = src
 
-EXTRA_DIST = LICENSE CREDITS Makefile.filters
+EXTRA_DIST = LICENSE CREDITS
+
+# diamond-filter-kit is only built for 32-bit
+DISTCHECK_CONFIGURE_FLAGS = CPPFLAGS=-m32 LDFLAGS=-m32
