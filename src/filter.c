@@ -25,11 +25,6 @@ static void free_1_circle(gpointer data, gpointer user_data) {
   g_free((circle_type *) data);
 }
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // inspired by
 // http://www.csee.usf.edu/~christen/tools/moments.c
 static void compute_moments(double *data_array, int len,
@@ -57,8 +52,8 @@ static void compute_moments(double *data_array, int len,
   *kurtosis = central_moments[3];
 }
 
-// 3 functions for diamond filter interface
-diamond_public
+// 2 functions for diamond filter interface
+static
 int f_init_circles (int num_arg, const char * const *args,
 		    int bloblen, const void *blob_data,
 		    const char *filter_name,
@@ -84,7 +79,7 @@ int f_init_circles (int num_arg, const char * const *args,
 }
 
 
-diamond_public
+static
 int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
   // circles
   GList *clist;
@@ -194,15 +189,4 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
   return num_circles_in_result;
 }
 
-
-
-diamond_public
-int f_fini_circles (void *filter_args) {
-  g_free((circles_state_t *) filter_args);
-
-  return 0;
-}
-
-#ifdef __cplusplus
-}
-#endif
+LF_MAIN(f_init_circles, f_eval_circles)

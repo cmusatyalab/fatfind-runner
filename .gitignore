@@ -10,12 +10,11 @@ Makefile.in
 *~
 *.bak
 *.o
-*.so
-*.a
 *.Po
 *.Tpo
 
 /src/fatfind-runner
+/src/fil_circle
 /aclocal.m4
 
 /stamp*
