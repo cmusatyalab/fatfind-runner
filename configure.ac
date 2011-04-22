@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(fatfind-runner, [1.1.0], [diamond@cs.cmu.edu])
+AC_INIT(fatfind-runner, [1.1.1], [diamond@cs.cmu.edu])
 AC_PREREQ([2.59])
 AC_CONFIG_SRCDIR([src])
 AM_INIT_AUTOMAKE([foreign 1.9])
