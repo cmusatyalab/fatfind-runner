@@ -22,7 +22,7 @@
 
 
 static void free_1_circle(gpointer data, gpointer user_data) {
-  g_free((circle_type *) data);
+  g_slice_free(circle_type, data);
 }
 
 // inspired by

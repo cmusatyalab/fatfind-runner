@@ -147,7 +147,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
       }
 
       // all set
-      circle_type *c = (circle_type *)g_malloc(sizeof(circle_type));
+      circle_type *c = g_slice_new(circle_type);
 
       c->x = ellipses[j].x * pyrScale;
       c->y = ellipses[j].y * pyrScale;

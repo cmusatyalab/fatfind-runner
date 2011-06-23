@@ -73,7 +73,7 @@ main (int argc, char *argv[])
     circle_type *c = (circle_type *) l->data;
     printf("%g %g %g %g %g %s\n", c->x, c->y, c->a, c->b, c->t,
 	   c->in_result ? "true" : "false");
-    g_free(l->data);
+    g_slice_free(circle_type, c);
   }
   g_list_free(circles);
 
