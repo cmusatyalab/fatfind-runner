@@ -259,6 +259,7 @@ GList *circlesFromImage2(circles_state_t *ct,
       // XXX fudge
       if ((dist + c2_radius) < (c1_radius + 100)) {
 	fprintf(stderr, "x");
+	g_slice_free(circle_type, c2);
 	result = g_list_delete_link(result, iter2);
       }
 

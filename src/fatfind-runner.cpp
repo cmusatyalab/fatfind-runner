@@ -76,6 +76,7 @@ main (int argc, char *argv[])
     g_slice_free(circle_type, c);
   }
   g_list_free(circles);
+  g_free(data);
 
   return 0;
 }
