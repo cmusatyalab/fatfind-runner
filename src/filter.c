@@ -189,4 +189,8 @@ int f_eval_circles (lf_obj_handle_t ohandle, void *filter_args) {
   return num_circles_in_result;
 }
 
-LF_MAIN(f_init_circles, f_eval_circles)
+int main(void)
+{
+  lf_main(f_init_circles, f_eval_circles);
+  return 0;
+}
