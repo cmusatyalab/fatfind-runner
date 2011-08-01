@@ -5,7 +5,7 @@ fatfind_runner_CPPFLAGS = @GLIB_CFLAGS@ @LTILIB_CFLAGS@
 fatfind_runner_SOURCES = circles4.cpp circles4.h fatfind-runner.cpp util.c util.h
 fatfind_runner_LDADD = @GLIB_LIBS@ @LTILIB_LIBS@
 
-filterdir = $(datadir)/fatfind/filter
+filterdir = $(datadir)/diamond/filters
 nodist_filter_DATA = fil_circle
 CLEANFILES = fil_circle
 FILTER_SOURCE = circles4.cpp util.c filter.c
