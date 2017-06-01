@@ -21,8 +21,8 @@ AC_SUBST(OPENDIAMOND_LIBS)
 
 AC_SEARCH_LIBS([sqrt], [m],, AC_MSG_FAILURE([cannot find math library]))
 
-AC_SUBST(LTILIB_CFLAGS, "$(/opt/diamond-filter-kit/bin/lti-config nogtk --cxxflags)")
-AC_SUBST(LTILIB_LIBS, "$(/opt/diamond-filter-kit/bin/lti-config nogtk --libs)")
+AC_SUBST(LTILIB_CFLAGS, "$(/usr/local/bin/lti-config nogtk --cxxflags)")
+AC_SUBST(LTILIB_LIBS, "$(/usr/local/bin/lti-config nogtk --libs)")
 
 AC_OUTPUT([
 Makefile
