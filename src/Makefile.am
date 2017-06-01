@@ -12,4 +12,4 @@ FILTER_SOURCE = circles4.cpp util.c filter.c
 EXTRA_DIST = filter.c
 
 fil_circle: $(FILTER_SOURCE) circles4.h util.h
-	g++ ${LDFLAGS} ${CPPFLAGS} -L/opt/diamond-filter-kit/lib @OPENDIAMOND_CFLAGS@ @GLIB_CFLAGS@ @LTILIB_CFLAGS@ -O2 -g -m32 -Wall -o $@ @OPENDIAMOND_LIBS@ @GLIB_LIBS@ -Wl,-Bstatic $(addprefix $(srcdir)/,$(FILTER_SOURCE)) $(filter-out -lpthread,@LTILIB_LIBS@) -lltinvr -Wl,-Bdynamic
+	g++ ${LDFLAGS} ${CPPFLAGS} @OPENDIAMOND_CFLAGS@ @GLIB_CFLAGS@ @LTILIB_CFLAGS@ -O2 -g -Wall -o $@ $(addprefix $(srcdir)/,$(FILTER_SOURCE)) @OPENDIAMOND_LIBS@ @GLIB_LIBS@ @LTILIB_LIBS@
