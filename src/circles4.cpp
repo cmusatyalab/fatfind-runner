@@ -15,6 +15,7 @@
 #include <cstring>
 
 #include <stdint.h>
+#include <inttypes.h>
 
 
 #include "ltiRGBPixel.h"
@@ -87,7 +88,7 @@ static void do_canny(lti::gaussianPyramid<lti::image> &imgPyramid,
 
   gettimeofday(&tv, NULL);
   end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  fprintf(stderr, "canny done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+  fprintf(stderr, "canny done in %" PRIu64 " ms\n", end_time_in_ms - start_time_in_ms);
 }
 
 static GList *do_fee(std::vector<lti::channel8*> &edges,
@@ -168,7 +169,7 @@ static GList *do_fee(std::vector<lti::channel8*> &edges,
 
   gettimeofday(&tv, NULL);
   end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  fprintf(stderr, "fee done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+  fprintf(stderr, "fee done in %" PRIu64 " ms\n", end_time_in_ms - start_time_in_ms);
 
   return result;
 }
@@ -204,7 +205,7 @@ GList *circlesFromImage2(circles_state_t *ct,
 
   gettimeofday(&tv, NULL);
   end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  fprintf(stderr, "load/pyramid done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+  fprintf(stderr, "load/pyramid done in %" PRIu64 " ms\n", end_time_in_ms - start_time_in_ms);
 
   // make vector
   std::vector<lti::channel8*> edges;
@@ -271,7 +272,7 @@ GList *circlesFromImage2(circles_state_t *ct,
 
   gettimeofday(&tv, NULL);
   end_time_in_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-  fprintf(stderr, "overlap suppression done in %lld ms\n", end_time_in_ms - start_time_in_ms);
+  fprintf(stderr, "overlap suppression done in %" PRIu64 " ms\n", end_time_in_ms - start_time_in_ms);
 
   return result;
 }
